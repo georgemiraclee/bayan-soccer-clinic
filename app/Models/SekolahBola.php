@@ -19,10 +19,16 @@ class SekolahBola extends Model
         'email',
         'telepon',
     ];
+    public function pemainBola()
+{
+    return $this->hasMany(PemainBola::class);
+}
+
 
     // Relasi: 1 Sekolah punya banyak Pemain
     public function pemainBolas()
     {
         return $this->hasMany(PemainBola::class);
     }
+    
 }

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Http\Controllers\PublicFormController;
+
+Route::get('/', [PublicFormController::class, 'index'])->name('public.form');
+Route::post('/', [PublicFormController::class, 'store'])->name('public.form.store');

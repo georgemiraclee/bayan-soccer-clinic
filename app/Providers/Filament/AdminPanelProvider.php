@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('Bayan Soccer Clinic') // teks di header
+            ->brandName('Bayan Soccer Clinic')
             ->brandLogo('https://rec-data.kalibrr.com/www.kalibrr.com/logos/GKTW5JUNVCCLNZFJFEE7ESSU26UQKVR5QKN7E65J-64ab6a30.png') 
             ->brandLogoHeight('50px')
             ->colors([
