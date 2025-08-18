@@ -16,10 +16,15 @@ class PemainBola extends Model
         'nama',
         'umur_kategori',
     ];
+    public function sekolah()
+{
+    return $this->belongsTo(SekolahBola::class);
+}
 
     // Relasi: Pemain milik 1 Sekolah
     public function sekolahBola()
     {
         return $this->belongsTo(SekolahBola::class);
     }
+    
 }
