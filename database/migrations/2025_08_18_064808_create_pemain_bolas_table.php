@@ -15,6 +15,7 @@ return new class extends Migration
         $table->id();
         $table->foreignId('sekolah_bola_id')->constrained()->onDelete('cascade');
         $table->string('nama');
+        $table->integer('umur');
         $table->enum('umur_kategori', ['7-8', '9-10', '11-12']);
         $table->timestamps();
     });
