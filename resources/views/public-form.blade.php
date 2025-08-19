@@ -158,8 +158,11 @@
             <div class="text-green-600 text-5xl sm:text-6xl mb-4">✓</div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Pendaftaran Berhasil!</h2>
             <p class="text-gray-600 mb-6 text-sm sm:text-base">Sekolah bola dan pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.</p>
+             <button onclick="exportToPDF()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition duration-300 mb-3">
+                Export ke PDF
+            </button>
             <button onclick="resetForm()" class="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition duration-300">
-                Daftar Sekolah Baru
+                Daftar SSB Baru
             </button>
         </div>
     </div>
@@ -168,6 +171,92 @@
     <footer class="mt-10 sm:mt-12 text-center font-semibold text-gray-600 text-xs sm:text-sm">
         <p>&copy; 2025 ICT Bayan Group. All Rights Reserved.</p>
     </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+        <script>
+            async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // ====== Config Logo ======
+            const logoUrl = "/images/logo.png"; // ganti sesuai logo kamu
+            const logo = await fetch(logoUrl).then(res => res.blob()).then(blob => {
+                return new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            });
+
+            // ====== Header ======
+            doc.setFillColor(255, 255, 255);
+            doc.rect(0, 0, 210, 30, "F"); // background putih
+            doc.addImage(logo, "PNG", 14, 5, 20, 20); // logo kiri
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Bayan Soccer Clinic", 105, 18, { align: "center" });
+
+            // ====== Informasi Sekolah ======
+            doc.setFontSize(13);
+            doc.setFont("helvetica", "bold");
+            doc.text("Data Sekolah Bola", 14, 45);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            doc.setTextColor(50, 50, 50);
+            doc.text(`Nama SSB   : ${sekolahData.nama}`, 14, 55);
+            doc.text(`PIC        : ${sekolahData.pic}`, 14, 63);
+            doc.text(`Email      : ${sekolahData.email}`, 14, 71);
+            doc.text(`Telepon    : ${sekolahData.telepon}`, 14, 79);
+
+            // ====== Daftar Pemain ======
+            doc.setFontSize(13);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(0, 0, 0);
+            doc.text("Daftar Pemain Terdaftar", 14, 95);
+
+            const tableData = pemainList.map((p, i) => [
+                i + 1,
+                p.nama,
+                p.umur,
+                p.kategori
+            ]);
+
+            doc.autoTable({
+                head: [["No", "Nama Pemain", "Umur", "Kategori"]],
+                body: tableData,
+                startY: 100,
+                theme: "grid",
+                styles: {
+                    halign: "center",
+                    valign: "middle",
+                    fontSize: 11,
+                    font: "helvetica"
+                },
+                headStyles: {
+                    fillColor: [0, 102, 204], // biru
+                    textColor: [255, 255, 255],
+                    fontStyle: "bold"
+                },
+                bodyStyles: {
+                    textColor: [60, 60, 60],
+                },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+            });
+
+            // ====== Footer ======
+            const pageHeight = doc.internal.pageSize.height;
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(120, 120, 120);
+            doc.text("© 2025 ICT Bayan Group. All Rights Reserved.", 105, pageHeight - 10, { align: "center" });
+
+            // Save PDF
+            doc.save(`Pendaftaran_${sekolahData.nama}.pdf`);
+        }
+        </script>
     <script>
         let sekolahData = {};
         let pemainList = [];
