@@ -9,7 +9,9 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class PemainBolaResource extends Resource
 {
@@ -62,9 +64,24 @@ class PemainBolaResource extends Resource
                     ->label('Sekolah Bola')
                     ->sortable()
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tanggal Daftar')
+                    ->dateTime('d M Y')
+                    ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('umur_kategori')
+                    ->label('Kategori Umur')
+                    ->options([
+                        '7-8' => '7-8 Tahun',
+                        '9-10' => '9-10 Tahun',
+                        '11-12' => '11-12 Tahun',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('sekolah_bola_id')
+                    ->label('Sekolah Bola')
+                    ->relationship('sekolahBola', 'nama'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -73,8 +90,48 @@ class PemainBolaResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->fromTable()
+                                ->withFilename(fn () => 'data-pemain-bola-' . date('Y-m-d'))
+                                ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
+                                ->withColumns([
+                                    Column::make('nama')->heading('Nama Pemain'),
+                                    Column::make('umur_kategori')->heading('Kategori Umur'),
+                                    Column::make('sekolahBola.nama')->heading('Sekolah Bola'),
+                                    Column::make('sekolahBola.pic')->heading('PIC Sekolah'),
+                                    Column::make('sekolahBola.telepon')->heading('Telepon Sekolah'),
+                                    Column::make('created_at')
+                                        ->heading('Tanggal Daftar')
+                                        ->formatStateUsing(fn ($state) => $state?->format('d/m/Y')),
+                                ])
+                        ])
+                        ->label('Export Excel'),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
+                    ->exports([
+                        ExcelExport::make()
+                            ->fromTable()
+                            ->withFilename(fn () => 'semua-data-pemain-bola-' . date('Y-m-d'))
+                            ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
+                            ->withColumns([
+                                Column::make('nama')->heading('Nama Pemain'),
+                                Column::make('umur_kategori')->heading('Kategori Umur'),
+                                Column::make('sekolahBola.nama')->heading('Sekolah Bola'),
+                                Column::make('sekolahBola.pic')->heading('PIC Sekolah'),
+                                Column::make('sekolahBola.telepon')->heading('Telepon Sekolah'),
+                                Column::make('created_at')
+                                    ->heading('Tanggal Daftar')
+                                    ->formatStateUsing(fn ($state) => $state?->format('d/m/Y')),
+                            ])
+                    ])
+                    ->label('Export Semua Data')
+                    ->color('success')
+                    ->icon('heroicon-o-document-arrow-down'),
             ]);
     }
 

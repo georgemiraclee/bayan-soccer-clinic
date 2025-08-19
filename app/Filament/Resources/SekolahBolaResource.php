@@ -10,6 +10,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class SekolahBolaResource extends Resource
 {
@@ -63,10 +66,16 @@ class SekolahBolaResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('email')
-                    ->label('Email'),
+                    ->label('Email')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('telepon')
                     ->label('Nomor Telepon'),
+
+                Tables\Columns\TextColumn::make('pemain_bola_count')
+                    ->label('Jumlah Pemain')
+                    ->counts('pemainBola')
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
@@ -83,8 +92,48 @@ class SekolahBolaResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->fromTable()
+                                ->withFilename(fn () => 'data-sekolah-bola-' . date('Y-m-d'))
+                                ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
+                                ->withColumns([
+                                    Column::make('nama')->heading('Nama Sekolah Bola'),
+                                    Column::make('pic')->heading('PIC'),
+                                    Column::make('email')->heading('Email'),
+                                    Column::make('telepon')->heading('Nomor Telepon'),
+                                    Column::make('pemain_bola_count')->heading('Jumlah Pemain'),
+                                    Column::make('created_at')
+                                        ->heading('Tanggal Dibuat')
+                                        ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i')),
+                                ])
+                        ])
+                        ->label('Export Excel'),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
+                    ->exports([
+                        ExcelExport::make()
+                            ->fromTable()
+                            ->withFilename(fn () => 'semua-data-sekolah-bola-' . date('Y-m-d'))
+                            ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
+                            ->withColumns([
+                                Column::make('nama')->heading('Nama Sekolah Bola'),
+                                Column::make('pic')->heading('PIC'),
+                                Column::make('email')->heading('Email'),
+                                Column::make('telepon')->heading('Nomor Telepon'),
+                                Column::make('pemain_bola_count')->heading('Jumlah Pemain'),
+                                Column::make('created_at')
+                                    ->heading('Tanggal Dibuat')
+                                    ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i')),
+                            ])
+                    ])
+                    ->label('Export Semua Data')
+                    ->color('success')
+                    ->icon('heroicon-o-document-arrow-down'),
             ]);
     }
 
