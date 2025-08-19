@@ -6,14 +6,24 @@
     <title>Bayan Soccer Clinic - Pendaftaran</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen py-8">
+<body class="bg-gradient-to-br from-orange-50 to-orange-50 min-h-screen py-8">
     <div class="max-w-4xl mx-auto">
+    <!-- Header dengan Logo -->
+        <div class="text-center mb-10">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFOrFbGVZY7ALuvh8n0LxNt6P62Z11oQLMCXdXptoQPCxu2vvGAUyiHLdo5pc9irK_Nik&usqp=CAU" 
+                 alt="Bayan Soccer Clinic" 
+                 class="mx-auto w-24 h-28 rounded-full shadow-lg">
+            <h1 class="mt-4 text-4xl md:text-5xl font-extrabold text-orange-400 tracking-wide drop-shadow-sm">
+                Bayan Soccer Clinic
+            </h1>
+            <p class="text-gray-600 font-semibold mt-2">Formulir Pendaftaran Sekolah Bola & Pemain</p>
+        </div>
         <!-- Progress Indicator -->
         <div class="mb-8">
             <div class="flex items-center justify-center space-x-8">
                 <div class="flex items-center">
-                    <div id="step1-indicator" class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                    <span id="step1-text" class="ml-2 font-medium text-blue-600">Daftar Sekolah Bola</span>
+                    <div id="step1-indicator" class="w-10 h-10 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                    <span id="step1-text" class="ml-2 font-medium text-orange-600">Daftar Sekolah Bola</span>
                 </div>
                 <div class="flex-1 h-1 bg-gray-300" id="progress-line"></div>
                 <div class="flex items-center">
@@ -31,28 +41,28 @@
                 <div class="grid md:grid-cols-2 gap-6">
                     <div>
                         <label class="block font-medium text-gray-700 mb-2">Nama Sekolah Bola *</label>
-                        <input type="text" id="nama_sekolah" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan nama sekolah bola">
+                        <input type="text" id="nama_sekolah" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Masukkan nama sekolah bola">
                     </div>
                     
                     <div>
                         <label class="block font-medium text-gray-700 mb-2">PIC (Penanggung Jawab) *</label>
-                        <input type="text" id="pic" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nama penanggung jawab">
+                        <input type="text" id="pic" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Nama penanggung jawab">
                     </div>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-6">
                     <div>
                         <label class="block font-medium text-gray-700 mb-2">Email *</label>
-                        <input type="email" id="email" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="email@example.com">
+                        <input type="email" id="email" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="email@example.com">
                     </div>
                     
                     <div>
                         <label class="block font-medium text-gray-700 mb-2">No. Telepon *</label>
-                        <input type="tel" id="telepon" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="08xxxxxxxxxx">
+                        <input type="tel" id="telepon" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="08xxxxxxxxxx">
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-300 transform hover:scale-105">
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition duration-300 transform hover:scale-105">
                     Lanjut ke Pendaftaran Pemain
                 </button>
             </form>
@@ -68,12 +78,12 @@
             </div>
 
             <!-- Info Sekolah -->
-            <div class="bg-blue-50 p-4 rounded-lg mb-6">
-                <h3 class="font-semibold text-blue-800 mb-2">Informasi Sekolah Bola:</h3>
-                <p class="text-blue-700"><strong>Nama:</strong> <span id="info-nama"></span></p>
-                <p class="text-blue-700"><strong>PIC:</strong> <span id="info-pic"></span></p>
-                <p class="text-blue-700"><strong>Email:</strong> <span id="info-email"></span></p>
-                <p class="text-blue-700"><strong>Telepon:</strong> <span id="info-telepon"></span></p>
+            <div class="bg-orange-50 p-4 rounded-lg mb-6">
+                <h3 class="font-semibold text-orange-800 mb-2">Informasi Sekolah Bola:</h3>
+                <p class="text-orange-700"><strong>Nama:</strong> <span id="info-nama"></span></p>
+                <p class="text-orange-700"><strong>PIC:</strong> <span id="info-pic"></span></p>
+                <p class="text-orange-700"><strong>Email:</strong> <span id="info-email"></span></p>
+                <p class="text-orange-700"><strong>Telepon:</strong> <span id="info-telepon"></span></p>
             </div>
 
             <!-- Form Tambah Pemain -->
@@ -135,7 +145,7 @@
                 <button onclick="kembaliKeSekolah()" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-300">
                     Kembali
                 </button>
-                <button onclick="selesaiPendaftaran()" id="btn-selesai" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                <button onclick="selesaiPendaftaran()" id="btn-selesai" class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
                     Selesai Pendaftaran
                 </button>
             </div>
@@ -146,7 +156,7 @@
             <div class="text-green-600 text-6xl mb-4">✓</div>
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Pendaftaran Berhasil!</h2>
             <p class="text-gray-600 mb-6">Sekolah bola dan pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.</p>
-            <button onclick="resetForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300">
+            <button onclick="resetForm()" class="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300">
                 Daftar Sekolah Baru
             </button>
         </div>
@@ -284,15 +294,15 @@
 
         function updateProgress(step) {
             if (step === 2) {
-                document.getElementById('step1-indicator').classList.remove('bg-blue-600');
+                document.getElementById('step1-indicator').classList.remove('bg-orange-600');
                 document.getElementById('step1-indicator').classList.add('bg-green-500');
-                document.getElementById('step1-text').classList.remove('text-blue-600');
+                document.getElementById('step1-text').classList.remove('text-orange-600');
                 document.getElementById('step1-text').classList.add('text-green-600');
                 
                 document.getElementById('step2-indicator').classList.remove('bg-gray-300', 'text-gray-600');
-                document.getElementById('step2-indicator').classList.add('bg-blue-600', 'text-white');
+                document.getElementById('step2-indicator').classList.add('bg-orange-600', 'text-white');
                 document.getElementById('step2-text').classList.remove('text-gray-600');
-                document.getElementById('step2-text').classList.add('text-blue-600');
+                document.getElementById('step2-text').classList.add('text-orange-600');
                 
                 document.getElementById('progress-line').classList.remove('bg-gray-300');
                 document.getElementById('progress-line').classList.add('bg-green-500');
@@ -304,15 +314,15 @@
             document.getElementById('form-sekolah').classList.remove('hidden');
             
             // Reset progress
-            document.getElementById('step1-indicator').classList.add('bg-blue-600');
+            document.getElementById('step1-indicator').classList.add('bg-orange-600');
             document.getElementById('step1-indicator').classList.remove('bg-green-500');
-            document.getElementById('step1-text').classList.add('text-blue-600');
+            document.getElementById('step1-text').classList.add('text-orange-600');
             document.getElementById('step1-text').classList.remove('text-green-600');
             
             document.getElementById('step2-indicator').classList.add('bg-gray-300', 'text-gray-600');
-            document.getElementById('step2-indicator').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('step2-indicator').classList.remove('bg-orange-600', 'text-white');
             document.getElementById('step2-text').classList.add('text-gray-600');
-            document.getElementById('step2-text').classList.remove('text-blue-600');
+            document.getElementById('step2-text').classList.remove('text-orange-600');
             
             document.getElementById('progress-line').classList.add('bg-gray-300');
             document.getElementById('progress-line').classList.remove('bg-green-500');
@@ -365,9 +375,6 @@
                     // Update success message dengan link ke admin
                     document.querySelector('#success-message p').innerHTML = `
                         Sekolah bola dan ${result.data.jumlah_pemain} pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.<br>
-                        <a href="${result.data.redirect_url}" class="text-blue-600 hover:text-blue-800 underline font-medium mt-2 inline-block">
-                            Lihat di Admin Panel →
-                        </a>
                     `;
                 } else {
                     alert('Terjadi kesalahan: ' + result.message);
@@ -400,15 +407,15 @@
             updatePemainCount();
             
             // Reset progress
-            document.getElementById('step1-indicator').classList.add('bg-blue-600');
+            document.getElementById('step1-indicator').classList.add('bg-orange-600');
             document.getElementById('step1-indicator').classList.remove('bg-green-500');
-            document.getElementById('step1-text').classList.add('text-blue-600');
+            document.getElementById('step1-text').classList.add('text-orange-600');
             document.getElementById('step1-text').classList.remove('text-green-600');
             
             document.getElementById('step2-indicator').classList.add('bg-gray-300', 'text-gray-600');
-            document.getElementById('step2-indicator').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('step2-indicator').classList.remove('bg-orange-600', 'text-white');
             document.getElementById('step2-text').classList.add('text-gray-600');
-            document.getElementById('step2-text').classList.remove('text-blue-600');
+            document.getElementById('step2-text').classList.remove('text-orange-600');
             
             document.getElementById('progress-line').classList.add('bg-gray-300');
             document.getElementById('progress-line').classList.remove('bg-green-500');

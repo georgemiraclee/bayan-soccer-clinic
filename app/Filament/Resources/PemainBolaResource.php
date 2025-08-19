@@ -10,6 +10,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+
 class PemainBolaResource extends Resource
 {
     protected static ?string $model = PemainBola::class;
@@ -71,6 +73,7 @@ class PemainBolaResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
+                  ExportBulkAction::make(),
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
