@@ -59,7 +59,7 @@ class PublicFormController extends Controller
         try {
             DB::beginTransaction();
 
-            // Simpan sekolah bola
+            // Simpan sekolah bola (user_token akan auto-generate di model)
             $sekolahBola = SekolahBola::create([
                 'nama' => $validatedSekolah['nama_sekolah'],
                 'pic' => $validatedSekolah['pic'],
@@ -89,7 +89,10 @@ class PublicFormController extends Controller
                 'message' => 'Pendaftaran sekolah bola dan pemain berhasil disimpan!',
                 'data' => [
                     'sekolah_bola_id' => $sekolahBola->id,
-                    'jumlah_pemain' => count($pemainData)
+                    'nama_sekolah' => $sekolahBola->nama,
+                    'jumlah_pemain' => count($pemainData),
+                    'user_token' => $sekolahBola->user_token,
+                    'user_url' => url("/user/{$sekolahBola->user_token}")
                 ]
             ]);
 
