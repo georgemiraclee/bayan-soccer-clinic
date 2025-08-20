@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bayan Soccer Dashboard</title>
+    <title>Bayan Soccer Dashboard - {{ $sekolah->nama }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="ico" href="{{ asset('logo.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .sidebar-active {
             background-color: #f3f4f6;
@@ -71,6 +73,34 @@
             opacity: 0.8;
             transform: translateY(-1px);
         }
+
+        .alert-slide-down {
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 9999px;
+        }
+
+        .badge-info { background-color: #dbeafe; color: #1e40af; }
+        .badge-warning { background-color: #fef3c7; color: #d97706; }
+        .badge-success { background-color: #d1fae5; color: #059669; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -78,14 +108,14 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-white shadow-lg">
             <!-- Logo Section -->
-            <!-- Logo Section -->
             <div class="p-6 border-b border-gray-200">
                 <div class="flex items-center space-x-3">
                     <img src="https://rec-data.kalibrr.com/www.kalibrr.com/logos/GKTW5JUNVCCLNZFJFEE7ESSU26UQKVR5QKN7E65J-64ab6a30.png" 
                         alt="Bayan Logo" 
-                        class="w-14 h-18  object-cover">
+                        class="w-14 h-18 object-cover">
                     <div>
                         <h2 class="text-lg font-bold text-orange-600">SOCCER CLINIC</h2>
+                        <p class="text-sm text-gray-500">{{ $sekolah->nama }}</p>
                     </div>
                 </div>
             </div>     
@@ -129,13 +159,86 @@
 
             <!-- Content Area -->
             <main class="flex-1 p-6">
+                <!-- Alert Informasi Kuota -->
+                <div id="quotaAlert" class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 alert-slide-down">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <h3 class="text-lg font-semibold text-blue-800 mb-2">
+                                <i class="fas fa-futbol mr-2"></i>Informasi Kuota SSB {{ $sekolah->nama }}
+                            </h3>
+                            <div class="text-blue-700 mb-4">
+                                <p class="mb-2">
+                                    Kuota pemain saat ini: <strong class="text-blue-800">{{ $kuotaData['total'] }} pemain</strong>
+                                </p>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="bg-white rounded-lg p-3 border border-blue-100">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-gray-600">Kelompok 7-8 Tahun</span>
+                                            <span class="badge badge-info">{{ $kuotaData['7-8'] }} pemain</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white rounded-lg p-3 border border-blue-100">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-gray-600">Kelompok 9-10 Tahun</span>
+                                            <span class="badge badge-warning">{{ $kuotaData['9-10'] }} pemain</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white rounded-lg p-3 border border-blue-100">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-gray-600">Kelompok 11-12 Tahun</span>
+                                            <span class="badge badge-success">{{ $kuotaData['11-12'] }} pemain</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="mt-3 text-sm">
+                                    <i class="fas fa-users-cog mr-1"></i>
+                                    Silakan Anda memanajemen pemain SSB Anda dengan bijak sesuai kategori umur yang tersedia.
+                                </p>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <button onclick="closeAlert()" class="text-blue-500 hover:text-blue-700 text-sm font-medium">
+                                    <i class="fas fa-times mr-1"></i>Tutup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flash Messages -->
+                @if(session('success'))
+                <div id="successAlert" class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 alert-slide-down">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                        <span class="text-green-800">{{ session('success') }}</span>
+                        <button onclick="closeSuccessAlert()" class="ml-auto text-green-500 hover:text-green-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                @endif
+
+                @if(session('error'))
+                <div id="errorAlert" class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 alert-slide-down">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
+                        <span class="text-red-800">{{ session('error') }}</span>
+                        <button onclick="closeErrorAlert()" class="ml-auto text-red-500 hover:text-red-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                @endif
+
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
                     <!-- Table Header -->
                     <div class="px-6 py-4 border-b border-gray-200">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-4">
                                 <div class="relative">
-                                    <input type="text" placeholder="Search" class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                    <input type="text" id="searchInput" placeholder="Cari nama pemain..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                     <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
@@ -144,53 +247,55 @@
                         </div>
                     </div>
 
-                    <!-- Original Laravel Content -->
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-lg font-semibold">Daftar Pemain Bola</h2>
-                            @if(isset($sekolah))
-                            @endif
-                        </div>
-
+                    <!-- Table Content -->
+                    <div class="bg-white p-6 rounded-lg">
                         <div class="overflow-x-auto">
                             <table class="w-full border border-gray-200 rounded-lg">
                                 <thead>
                                     <tr class="bg-gray-100 text-left text-gray-600">
+                                        <th class="p-3">No</th>
                                         <th class="p-3">Nama</th>
                                         <th class="p-3">Umur</th>
                                         <th class="p-3">Kategori</th>
                                         <th class="p-3 text-center">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @if(isset($sekolah) && isset($sekolah->pemainBola))
-                                        @forelse($sekolah->pemainBola as $pemain)
-                                        <tr class="border-t hover:bg-gray-50">
-                                            <td class="p-3">{{ $pemain->nama }}</td>
-                                            <td class="p-3">{{ $pemain->umur }}</td>
-                                            <td class="p-3">{{ $pemain->umur_kategori }}</td>
-                                            <td class="p-3 text-center flex justify-center gap-3">
-                                                <a href="/user/{{ $sekolah->id }}/edit-pemain/{{ $pemain->id }}" 
-                                                   class="text-blue-600 hover:underline">Edit</a>
-                                                <form action="/user/{{ $sekolah->id }}/hapus-pemain/{{ $pemain->id }}" 
-                                                      method="POST" 
-                                                      onsubmit="return confirm('Yakin hapus?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button class="text-red-600 hover:underline">Hapus</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                        @empty
-                                        <tr>
-                                            <td colspan="4" class="p-3 text-center text-gray-500">Belum ada pemain</td>
-                                        </tr>
-                                        @endforelse
-                                    @else
-                                        <tr>
-                                            <td colspan="4" class="p-3 text-center text-gray-500">Data sekolah tidak tersedia</td>
-                                        </tr>
-                                    @endif
+                                <tbody id="playerTable">
+                                    @forelse($sekolah->pemainBolas as $index => $pemain)
+                                    <tr class="border-t hover:bg-gray-50 table-hover">
+                                        <td class="p-3">{{ $index + 1 }}</td>
+                                        <td class="p-3 font-medium">{{ $pemain->nama }}</td>
+                                        <td class="p-3">{{ $pemain->umur }} tahun</td>
+                                        <td class="p-3">
+                                            <span class="badge 
+                                                @if($pemain->umur_kategori == '7-8') badge-info 
+                                                @elseif($pemain->umur_kategori == '9-10') badge-warning 
+                                                @else badge-success @endif">
+                                                {{ $pemain->umur_kategori }} tahun
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                <a href="{{ route('user.pemain.edit', [$sekolah->user_token, $pemain->id]) }}" 
+                                                   class="action-btn edit">
+                                                    <i class="fas fa-edit mr-1"></i>Edit
+                                                </a>
+                                                <button onclick="confirmDelete('{{ $pemain->nama }}', '{{ $pemain->id }}')" 
+                                                        class="action-btn delete">
+                                                    <i class="fas fa-trash mr-1"></i>Hapus
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr id="emptyRow">
+                                        <td colspan="5" class="p-8 text-center text-gray-500">
+                                            <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                                            <p class="text-lg font-medium">Belum ada pemain</p>
+                                            <p class="text-sm">Mulai tambahkan pemain untuk SSB Anda</p>
+                                        </td>
+                                    </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -200,34 +305,75 @@
         </div>
     </div>
 
+    <!-- Form untuk delete (hidden) -->
+    <form id="deleteForm" method="POST" style="display: none;">
+        @csrf
+        @method('DELETE')
+    </form>
+
     <script>
-        function confirmDelete(nama) {
-            return confirm('Yakin ingin menghapus pemain ' + nama + '?');
+        // Close alert functions
+        function closeAlert() {
+            document.getElementById('quotaAlert').style.display = 'none';
+        }
+
+        function closeSuccessAlert() {
+            document.getElementById('successAlert').style.display = 'none';
+        }
+
+        function closeErrorAlert() {
+            document.getElementById('errorAlert').style.display = 'none';
+        }
+
+        // Auto close success/error alerts after 5 seconds
+        setTimeout(function() {
+            const successAlert = document.getElementById('successAlert');
+            const errorAlert = document.getElementById('errorAlert');
+            if (successAlert) successAlert.style.display = 'none';
+            if (errorAlert) errorAlert.style.display = 'none';
+        }, 5000);
+
+        // Confirm delete function
+        function confirmDelete(nama, pemainId) {
+            if (confirm(`Yakin ingin menghapus pemain "${nama}"?\n\nData yang sudah dihapus tidak dapat dikembalikan.`)) {
+                const form = document.getElementById('deleteForm');
+                form.action = `{{ route('user.pemain.destroy', [$sekolah->user_token, ':id']) }}`.replace(':id', pemainId);
+                form.submit();
+            }
         }
 
         // Search functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.querySelector('input[placeholder="Search"]');
-            const tableRows = document.querySelectorAll('tbody tr');
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#playerTable tr');
+            let visibleCount = 0;
 
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    
-                    tableRows.forEach(function(row) {
-                        const nama = row.querySelector('td:first-child');
-                        if (nama) {
-                            const namaText = nama.textContent.toLowerCase();
-                            if (namaText.includes(searchTerm)) {
-                                row.style.display = '';
-                            } else {
-                                row.style.display = 'none';
-                            }
-                        }
-                    });
-                });
+            rows.forEach(function(row) {
+                if (row.id === 'emptyRow') return;
+                
+                const nama = row.querySelector('td:nth-child(2)');
+                if (nama) {
+                    const namaText = nama.textContent.toLowerCase();
+                    if (namaText.includes(searchTerm)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+
+            // Show/hide empty state
+            const emptyRow = document.getElementById('emptyRow');
+            if (emptyRow) {
+                emptyRow.style.display = visibleCount === 0 ? '' : 'none';
             }
         });
+
+        // Add player modal (you can implement this later)
+        function addPlayerModal() {
+            alert('Fitur tambah pemain akan segera tersedia. Untuk sementara, gunakan form manual atau admin panel.');
+        }
     </script>
 </body>
 </html>
