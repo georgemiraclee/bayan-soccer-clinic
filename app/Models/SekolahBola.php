@@ -21,14 +21,14 @@ class SekolahBola extends Model
     ];
     public function pemainBola()
 {
-    return $this->hasMany(PemainBola::class);
+   return $this->hasMany(PemainBola::class, 'sekolah_bola_id');
 }
 
 
     // Relasi: 1 Sekolah punya banyak Pemain
     public function pemainBolas()
     {
-        return $this->hasMany(PemainBola::class);
+       return $this->hasMany(PemainBola::class, 'sekolah_bola_id');
     }
     
 }

@@ -4,6 +4,10 @@ use App\Http\Controllers\PublicFormController;
 use Illuminate\Support\Facades\Route;
 use App\Exports\SekolahBolaExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\UserSekolahController;
+
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -31,3 +35,5 @@ Route::get('/sekolahbola-export', function () {
     }
     return back()->with('error', 'Tidak ada data untuk diexport.');
 })->name('sekolahbola.export');
+
+Route::get('/user/{id}', [UserSekolahController::class, 'show'])->name('user.sekolah.show');

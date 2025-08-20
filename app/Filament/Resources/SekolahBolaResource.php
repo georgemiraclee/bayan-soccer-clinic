@@ -76,6 +76,19 @@ class SekolahBolaResource extends Resource
                     ->label('Jumlah Pemain')
                     ->counts('pemainBola')
                     ->sortable(),
+                    
+                Tables\Columns\TextColumn::make('user_link')
+                    ->label('User Link')
+                    ->getStateUsing(fn ($record) => url("/user/{$record->id}"))
+                    ->url(fn ($record) => url("/user/{$record->id}"))
+                    ->openUrlInNewTab()
+                    ->copyable()
+                    ->copyMessage('Link berhasil disalin!')
+                    ->copyMessageDuration(1500)
+                    ->badge()
+                    ->color('primary')
+                    ->icon('heroicon-m-link')
+                    ->formatStateUsing(fn ($state) => 'Buka Link'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
@@ -104,6 +117,9 @@ class SekolahBolaResource extends Resource
                                     Column::make('email')->heading('Email'),
                                     Column::make('telepon')->heading('Nomor Telepon'),
                                     Column::make('pemain_bola_count')->heading('Jumlah Pemain'),
+                                    Column::make('user_link')
+                                        ->heading('User Link')
+                                        ->formatStateUsing(fn ($state, $record) => url("/user/{$record->id}")),
                                     Column::make('created_at')
                                         ->heading('Tanggal Dibuat')
                                         ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i')),
@@ -126,6 +142,9 @@ class SekolahBolaResource extends Resource
                                 Column::make('email')->heading('Email'),
                                 Column::make('telepon')->heading('Nomor Telepon'),
                                 Column::make('pemain_bola_count')->heading('Jumlah Pemain'),
+                                Column::make('user_link')
+                                    ->heading('User Link')
+                                    ->formatStateUsing(fn ($state, $record) => url("/user/{$record->id}")),
                                 Column::make('created_at')
                                     ->heading('Tanggal Dibuat')
                                     ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i')),

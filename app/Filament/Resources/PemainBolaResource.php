@@ -36,6 +36,13 @@ class PemainBolaResource extends Resource
                 ->required()
                 ->maxLength(255),
 
+            Forms\Components\TextInput::make('umur')
+                ->label('Umur')
+                ->numeric()
+                ->required()
+                ->minValue(7)
+                ->maxValue(12),
+
             Forms\Components\Select::make('umur_kategori')
                 ->label('Kategori Umur')
                 ->options([
@@ -56,8 +63,13 @@ class PemainBolaResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('umur_kategori')
+                Tables\Columns\TextColumn::make('umur')
                     ->label('Umur')
+                    ->sortable()
+                    ->suffix(' tahun'),
+
+                Tables\Columns\TextColumn::make('umur_kategori')
+                    ->label('Kategori')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('sekolahBola.nama')
@@ -82,6 +94,17 @@ class PemainBolaResource extends Resource
                 Tables\Filters\SelectFilter::make('sekolah_bola_id')
                     ->label('Sekolah Bola')
                     ->relationship('sekolahBola', 'nama'),
+
+                Tables\Filters\SelectFilter::make('umur')
+                    ->label('Umur')
+                    ->options([
+                        7 => '7 Tahun',
+                        8 => '8 Tahun',
+                        9 => '9 Tahun',
+                        10 => '10 Tahun',
+                        11 => '11 Tahun',
+                        12 => '12 Tahun',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -98,6 +121,7 @@ class PemainBolaResource extends Resource
                                 ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
                                 ->withColumns([
                                     Column::make('nama')->heading('Nama Pemain'),
+                                    Column::make('umur')->heading('Umur'),
                                     Column::make('umur_kategori')->heading('Kategori Umur'),
                                     Column::make('sekolahBola.nama')->heading('Sekolah Bola'),
                                     Column::make('sekolahBola.pic')->heading('PIC Sekolah'),
@@ -120,6 +144,7 @@ class PemainBolaResource extends Resource
                             ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
                             ->withColumns([
                                 Column::make('nama')->heading('Nama Pemain'),
+                                Column::make('umur')->heading('Umur'),
                                 Column::make('umur_kategori')->heading('Kategori Umur'),
                                 Column::make('sekolahBola.nama')->heading('Sekolah Bola'),
                                 Column::make('sekolahBola.pic')->heading('PIC Sekolah'),

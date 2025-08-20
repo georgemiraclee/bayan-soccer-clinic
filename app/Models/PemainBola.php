@@ -27,7 +27,7 @@ class PemainBola extends Model
      */
     public function sekolahBola()
     {
-        return $this->belongsTo(SekolahBola::class);
+        return $this->belongsTo(SekolahBola::class, 'sekolah_bola_id');
     }
 
     /**
