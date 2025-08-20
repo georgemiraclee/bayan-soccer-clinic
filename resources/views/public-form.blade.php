@@ -178,6 +178,24 @@
             async function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
+            const colors = {
+                primary: [255, 153, 51],      // Orange
+                secondary: [34, 197, 94],     // Green
+                dark: [31, 41, 55],           // Dark gray
+                light: [249, 250, 251],       // Light gray
+                white: [255, 255, 255],
+                accent: [59, 130, 246],       // Blue
+                lightOrange: [255, 237, 213], // Light orange
+                lightGray: [156, 163, 175]    // Light gray
+            };
+             const currentDate = new Date().toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            doc.setFontSize(10);
+            doc.text(currentDate, 196, 35, { align: "right" });
 
             // ====== Config Logo ======
             const logoUrl = "/images/logo.png"; // ganti sesuai logo kamu
@@ -201,7 +219,7 @@
             // ====== Informasi Sekolah ======
             doc.setFontSize(13);
             doc.setFont("helvetica", "bold");
-            doc.text("Data Sekolah Bola", 14, 45);
+            doc.text("Data Sekolah Sepak Bola", 14, 45);
 
             doc.setFont("helvetica", "normal");
             doc.setFontSize(11);
@@ -215,7 +233,7 @@
             doc.setFontSize(13);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(0, 0, 0);
-            doc.text("Daftar Pemain Terdaftar", 14, 95);
+            doc.text("Daftar Pemain Sementara", 14, 95);
 
             const tableData = pemainList.map((p, i) => [
                 i + 1,
@@ -248,10 +266,17 @@
 
             // ====== Footer ======
             const pageHeight = doc.internal.pageSize.height;
+            
+            // Footer background
+            doc.setFillColor(...colors.dark);
+            doc.rect(0, pageHeight - 25, 210, 25, "F");
+            
+            // Footer content
+            doc.setFont("helvetica", "normal");
             doc.setFontSize(9);
-            doc.setFont("helvetica", "italic");
-            doc.setTextColor(120, 120, 120);
-            doc.text("© 2025 ICT Bayan Group. All Rights Reserved.", 105, pageHeight - 10, { align: "center" });
+            doc.setTextColor(...colors.white);
+            doc.text("© 2025 Bayan Group. All Rights Reserved.", 14, pageHeight - 15);
+            doc.text(`Dokumen dibuat pada: ${currentDate}`, 14, pageHeight - 8);
 
             // Save PDF
             doc.save(`Pendaftaran_${sekolahData.nama}.pdf`);
