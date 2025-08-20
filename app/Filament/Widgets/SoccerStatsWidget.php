@@ -42,40 +42,35 @@ class SoccerStatsWidget extends BaseWidget
             ->toArray();
 
         return [
-            Stat::make('Total Sekolah Bola', $totalSekolah)
+            Stat::make('Total SSB', $totalSekolah)
                 ->description($sekolahHariIni . ' pendaftaran hari ini')
                 ->descriptionIcon('heroicon-m-building-office')
                 ->chart($this->getSekolahChartData())
                 ->color('success'),
 
-            Stat::make('Total Pemain', $totalPemain)
+            Stat::make('Total Pemain SSB', $totalPemain)
                 ->description($pemainHariIni . ' pemain baru hari ini')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->chart($this->getPemainChartData())
                 ->color('info'),
 
-            Stat::make('Sekolah Minggu Ini', $sekolahMingguIni)
+            Stat::make('Pendaftaran SSB Minggu Ini', $sekolahMingguIni)
                 ->description(($sekolahTrend >= 0 ? '+' : '') . number_format($sekolahTrend, 1) . '% dari minggu lalu')
                 ->descriptionIcon($sekolahTrend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($sekolahTrend >= 0 ? 'success' : 'danger'),
 
-            Stat::make('Rata-rata Pemain', $rataRataPemain)
-                ->description('per sekolah bola')
-                ->descriptionIcon('heroicon-m-calculator')
-                ->color('warning'),
-
             Stat::make('Kategori 7-8 Tahun', $kategoriStats['7-8'] ?? 0)
-                ->description('pemain')
+                ->description('Pemain')
                 ->descriptionIcon('heroicon-m-user')
                 ->color('info'),
 
             Stat::make('Kategori 9-10 Tahun', $kategoriStats['9-10'] ?? 0)
-                ->description('pemain')
+                ->description('Pemain')
                 ->descriptionIcon('heroicon-m-user')
                 ->color('warning'),
 
             Stat::make('Kategori 11-12 Tahun', $kategoriStats['11-12'] ?? 0)
-                ->description('pemain')
+                ->description('Pemain')
                 ->descriptionIcon('heroicon-m-user')
                 ->color('success'),
         ];

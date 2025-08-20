@@ -21,9 +21,9 @@ class SekolahBolaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
 
-    protected static ?string $navigationLabel = 'Sekolah Bola';
-    protected static ?string $pluralLabel = 'Daftar Sekolah Bola';
-    protected static ?string $modelLabel = 'Sekolah Bola';
+    protected static ?string $navigationLabel = 'Daftar SSB';
+    protected static ?string $pluralLabel = 'Daftar Sekolah Sepak Bola';
+    protected static ?string $modelLabel = 'Daftar SSB';
 
     public static function form(Form $form): Form
     {

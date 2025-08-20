@@ -19,9 +19,9 @@ class PemainBolaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $navigationLabel = 'Pemain Bola';
-    protected static ?string $pluralLabel = 'Daftar Pemain Bola';
-    protected static ?string $modelLabel = 'Pemain Bola';
+    protected static ?string $navigationLabel = 'Pemain SSB';
+    protected static ?string $pluralLabel = 'Daftar Pemain SSB';
+    protected static ?string $modelLabel = 'Pemain SSB';
 
     public static function form(Form $form): Form
     {
