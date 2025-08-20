@@ -9,6 +9,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class PemainBolasRelationManager extends RelationManager
 {
@@ -99,12 +102,43 @@ class PemainBolasRelationManager extends RelationManager
                         '9-10' => '9-10 Tahun',
                         '11-12' => '11-12 Tahun',
                     ]),
+
+                Tables\Filters\SelectFilter::make('umur')
+                    ->label('Umur')
+                    ->options([
+                        7 => '7 Tahun',
+                        8 => '8 Tahun',
+                        9 => '9 Tahun',
+                        10 => '10 Tahun',
+                        11 => '11 Tahun',
+                        12 => '12 Tahun',
+                    ]),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                     ->label('Tambah Pemain')
                     ->modalHeading('Tambah Pemain Baru')
                     ->successNotificationTitle('Pemain berhasil ditambahkan'),
+                    
+                // Export Action
+                \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
+                    ->exports([
+                        ExcelExport::make()
+                            ->fromTable()
+                            ->withFilename(fn () => 'pemain-' . str_replace(' ', '-', strtolower($this->getOwnerRecord()->nama)) . '-' . date('Y-m-d'))
+                            ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
+                            ->withColumns([
+                                Column::make('nama')->heading('Nama Pemain'),
+                                Column::make('umur')->heading('Umur'),
+                                Column::make('umur_kategori')->heading('Kategori Umur'),
+                                Column::make('created_at')
+                                    ->heading('Tanggal Daftar')
+                                    ->formatStateUsing(fn ($state) => $state?->format('d/m/Y')),
+                            ])
+                    ])
+                    ->label('Export Pemain')
+                    ->color('success')
+                    ->icon('heroicon-o-document-arrow-down'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
@@ -118,6 +152,18 @@ class PemainBolasRelationManager extends RelationManager
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    // Export bulk action
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->fromTable()
+                                ->withFilename(fn () => 'selected-pemain-' . str_replace(' ', '-', strtolower($this->getOwnerRecord()->nama)) . '-' . date('Y-m-d'))
+                                ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
+                        ])
+                        ->label('Export Terpilih')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('success'),
+                        
                     Tables\Actions\DeleteBulkAction::make()
                         ->requiresConfirmation()
                         ->modalHeading('Hapus Pemain Terpilih')

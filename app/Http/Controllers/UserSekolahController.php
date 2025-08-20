@@ -3,14 +3,147 @@
 namespace App\Http\Controllers;
 
 use App\Models\SekolahBola;
+use App\Models\PemainBola;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UserSekolahController extends Controller
 {
-    public function show($id)
+    /**
+     * Show user management page menggunakan token
+     */
+    public function show($userToken)
     {
-        $sekolah = SekolahBola::with('pemainBola')->findOrFail($id);
+        $sekolah = SekolahBola::byUserToken($userToken)
+            ->with('pemainBola')
+            ->first();
+
+        if (!$sekolah) {
+            abort(404, 'Halaman tidak ditemukan atau token tidak valid');
+        }
 
         return view('user.sekolah.show', compact('sekolah'));
+    }
+
+    /**
+     * Update data sekolah
+     */
+    public function updateSekolah(Request $request, $userToken)
+    {
+        $sekolah = SekolahBola::byUserToken($userToken)->firstOrFail();
+
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required|string|max:255',
+            'pic' => 'required|string|max:255',
+            'email' => 'required|email|unique:sekolah_bolas,email,' . $sekolah->id,
+            'telepon' => 'required|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $sekolah->update($request->only(['nama', 'pic', 'email', 'telepon']));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data sekolah berhasil diperbarui',
+            'data' => $sekolah->fresh()
+        ]);
+    }
+
+    /**
+     * Update data pemain
+     */
+    public function updatePemain(Request $request, $userToken, $pemainId)
+    {
+        $sekolah = SekolahBola::byUserToken($userToken)->firstOrFail();
+        $pemain = PemainBola::where('sekolah_bola_id', $sekolah->id)
+            ->where('id', $pemainId)
+            ->firstOrFail();
+
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required|string|max:255',
+            'umur' => 'required|integer|min:7|max:12',
+            'umur_kategori' => 'required|in:7-8,9-10,11-12',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Validasi konsistensi umur dan kategori
+        $this->validateUmurKategori($request->umur, $request->umur_kategori);
+
+        $pemain->update([
+            'nama' => $request->nama,
+            'umur' => $request->umur,
+            'umur_kategori' => $request->umur_kategori,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data pemain berhasil diperbarui',
+            'data' => $pemain->fresh()
+        ]);
+    }
+
+    /**
+     * Hapus pemain
+     */
+    public function deletePemain($userToken, $pemainId)
+    {
+        $sekolah = SekolahBola::byUserToken($userToken)->firstOrFail();
+        $pemain = PemainBola::where('sekolah_bola_id', $sekolah->id)
+            ->where('id', $pemainId)
+            ->firstOrFail();
+
+        // Cek minimal harus ada 1 pemain
+        $totalPemain = PemainBola::where('sekolah_bola_id', $sekolah->id)->count();
+        if ($totalPemain <= 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak bisa menghapus pemain. Minimal harus ada 1 pemain.'
+            ], 422);
+        }
+
+        $pemain->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pemain berhasil dihapus'
+        ]);
+    }
+
+    /**
+     * Validasi konsistensi umur dan kategori
+     */
+    private function validateUmurKategori($umur, $kategori)
+    {
+        $valid = false;
+        
+        switch ($kategori) {
+            case '7-8':
+                $valid = $umur >= 7 && $umur <= 8;
+                break;
+            case '9-10':
+                $valid = $umur >= 9 && $umur <= 10;
+                break;
+            case '11-12':
+                $valid = $umur >= 11 && $umur <= 12;
+                break;
+        }
+
+        if (!$valid) {
+            throw new \Exception("Kategori umur {$kategori} tidak sesuai dengan umur {$umur} tahun");
+        }
     }
 }
