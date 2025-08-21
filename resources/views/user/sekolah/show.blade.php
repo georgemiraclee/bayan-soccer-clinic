@@ -159,8 +159,8 @@
 
             <!-- Content Area -->
             <main class="flex-1 p-6">
-                <!-- Alert Informasi Kuota -->
-                <div id="quotaAlert" class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 alert-slide-down">
+                <!-- Alert Informasi Kuota yang sudah diupdate -->
+                <div id="quotaAlert" class="mb-6 bg-gradient-to-r from-orange-50 to-green-50 border border-blue-200 rounded-lg p-6 alert-slide-down">
                     <div class="flex items-start">
                         <div class="flex-shrink-0">
                             <i class="fas fa-info-circle text-blue-500 text-xl"></i>
@@ -170,38 +170,118 @@
                                 <i class="fas fa-futbol mr-2"></i>Informasi Kuota SSB {{ $sekolah->nama }}
                             </h3>
                             <div class="text-blue-700 mb-4">
-                                <p class="mb-2">
-                                    Kuota pemain saat ini: <strong class="text-blue-800">{{ $kuotaData['total'] }} pemain</strong>
-                                </p>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div class="bg-white rounded-lg p-3 border border-blue-100">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-medium text-gray-600">Kelompok 7-8 Tahun</span>
-                                            <span class="badge badge-info">{{ $kuotaData['7-8'] }} pemain</span>
+                                @if($kuotaData['has_quota'])
+                                    <p class="mb-2">
+                                        Kuota yang diberikan: <strong class="text-blue-800">{{ $kuotaData['total'] }} Orang</strong>
+                                    </p>
+                                    <p class="mb-4 text-sm">
+                                        Pemain terdaftar: <strong class="text-green-800">{{ $kuotaData['current_counts']['total'] }} Orang dari {{ $kuotaData['total'] }} Orang</strong>
+                                    </p>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="bg-white rounded-lg p-4 border border-blue-100 shadow-sm">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-sm font-medium text-gray-600">Kelompok 7-8 Tahun</span>
+                                                <span class="badge badge-info">{{ $kuotaData['7-8'] }} kuota</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-xs mb-2">
+                                                <span class="text-gray-500">Terdaftar: {{ $kuotaData['current_counts']['7-8'] }}</span>
+                                                <span class="text-green-600 font-medium">Sisa: {{ $kuotaData['remaining']['7-8'] }}</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="bg-transparent h-2 rounded-full transition-all duration-300" 
+                                                    style="width: {{ $kuotaData['percentage']['7-8'] }}%"></div>
+                                            </div>
+                                            
+                                        </div>
+                                        
+                                        <div class="bg-white rounded-lg p-4 border border-blue-100 shadow-sm">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-sm font-medium text-gray-600">Kelompok 9-10 Tahun</span>
+                                                <span class="badge badge-warning">{{ $kuotaData['9-10'] }} kuota</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-xs mb-2">
+                                                <span class="text-gray-500">Terdaftar: {{ $kuotaData['current_counts']['9-10'] }}</span>
+                                                <span class="text-green-600 font-medium">Sisa: {{ $kuotaData['remaining']['9-10'] }}</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="bg-transparent h-2 rounded-full transition-all duration-300" 
+                                                    style="width: {{ $kuotaData['percentage']['9-10'] }}%"></div>
+                                            </div>
+                                         
+                                        </div>
+                                        
+                                        <div class="bg-white rounded-lg p-4 border border-blue-100 shadow-sm">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-sm font-medium text-gray-600">Kelompok 11-12 Tahun</span>
+                                                <span class="badge badge-success">{{ $kuotaData['11-12'] }} kuota</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-xs mb-2">
+                                                <span class="text-gray-500">Terdaftar: {{ $kuotaData['current_counts']['11-12'] }}</span>
+                                                <span class="text-green-600 font-medium">Sisa: {{ $kuotaData['remaining']['11-12'] }}</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="bg-transparent h-2 rounded-full transition-all duration-300" 
+                                                    style="width: {{ $kuotaData['percentage']['11-12'] }}%"></div>
+                                            </div>
+                                           
                                         </div>
                                     </div>
-                                    <div class="bg-white rounded-lg p-3 border border-blue-100">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-medium text-gray-600">Kelompok 9-10 Tahun</span>
-                                            <span class="badge badge-warning">{{ $kuotaData['9-10'] }} pemain</span>
+                                    
+                                    <!-- Alert untuk kategori yang hampir penuh atau penuh -->
+                                    @php
+                                        $alerts = [];
+                                        foreach(['7-8', '9-10', '11-12'] as $cat) {
+                                            if($kuotaData['percentage'][$cat] >= 100) {
+                                                $alerts[] = "Kategori {$cat} tahun sudah melebih batas";
+                                            } elseif($kuotaData['percentage'][$cat] >= 80) {
+                                                $alerts[] = "Kategori {$cat} tahun hampir penuh ({$kuotaData['percentage'][$cat]}%)";
+                                            }
+                                        }
+                                    @endphp
+                                    
+                                    @if(count($alerts) > 0)
+                                        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                                                <div class="text-yellow-800 text-sm">
+                                                    <strong>Perhatian:</strong>
+                                                    <ul class="list-disc list-inside mt-1">
+                                                        @foreach($alerts as $alert)
+                                                            <li>{{ $alert }}</li>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                @else
+                                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-exclamation-triangle text-yellow-600 mr-3"></i>
+                                            <div class="text-yellow-800">
+                                                <strong>Kuota belum ditetapkan</strong>
+                                                <p class="text-sm mt-1">Admin belum menetapkan kuota untuk SSB Anda. Hubungi admin untuk informasi lebih lanjut.</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="bg-white rounded-lg p-3 border border-blue-100">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-medium text-gray-600">Kelompok 11-12 Tahun</span>
-                                            <span class="badge badge-success">{{ $kuotaData['11-12'] }} pemain</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                @endif
+                                
                                 <p class="mt-3 text-sm">
                                     <i class="fas fa-users-cog mr-1"></i>
                                     Silakan Anda memanajemen pemain SSB Anda dengan bijak sesuai kategori umur yang tersedia.
                                 </p>
                             </div>
                             <div class="flex items-center justify-between">
-                                <button onclick="closeAlert()" class="text-blue-500 hover:text-blue-700 text-sm font-medium">
-                                    <i class="fas fa-times mr-1"></i>Tutup
-                                </button>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="refreshQuota()" class="text-blue-500 hover:text-blue-700 text-sm font-medium">
+                                        <i class="fas fa-refresh mr-1"></i>Refresh Data
+                                    </button>
+                                    @if($kuotaData['has_quota'])
+                                        <span class="text-gray-400">•</span>
+                                        <span class="text-xs text-gray-500">Diperbarui: {{ $sekolah->kuotaSekolah->updated_at ?? 'Belum diatur' }}</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -312,6 +392,27 @@
     </form>
 
     <script>
+        // Tambahkan function refresh quota
+            function refreshQuota() {
+                // Reload halaman untuk mendapat data terbaru
+                location.reload();
+            }
+
+            // Function untuk update quota secara realtime (optional)
+            function updateQuotaDisplay() {
+                fetch(`/api/user/{{ $sekolah->user_token }}/quota`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update display dengan data terbaru
+                        console.log('Quota data updated:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching quota:', error);
+                    });
+            }
+
+            // Auto refresh setiap 30 detik (optional)
+            setInterval(updateQuotaDisplay, 30000);
         // Close alert functions
         function closeAlert() {
             document.getElementById('quotaAlert').style.display = 'none';
