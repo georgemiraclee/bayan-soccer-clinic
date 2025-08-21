@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="ico" href="{{ asset('logo.ico') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         .sidebar-active {
             background-color: #f3f4f6;
@@ -101,6 +102,29 @@
         .badge-info { background-color: #dbeafe; color: #1e40af; }
         .badge-warning { background-color: #fef3c7; color: #d97706; }
         .badge-success { background-color: #d1fae5; color: #059669; }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #f59e0b;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -159,6 +183,9 @@
 
             <!-- Content Area -->
             <main class="flex-1 p-6">
+                <!-- Alert Container -->
+                <div id="alertContainer"></div>
+
                 <!-- Alert Informasi Kuota yang sudah diupdate -->
                 <div id="quotaAlert" class="mb-6 bg-gradient-to-r from-orange-50 to-green-50 border border-blue-200 rounded-lg p-6 alert-slide-down">
                     <div class="flex items-start">
@@ -191,7 +218,6 @@
                                                 <div class="bg-transparent h-2 rounded-full transition-all duration-300" 
                                                     style="width: {{ $kuotaData['percentage']['7-8'] }}%"></div>
                                             </div>
-                                            
                                         </div>
                                         
                                         <div class="bg-white rounded-lg p-4 border border-blue-100 shadow-sm">
@@ -207,7 +233,6 @@
                                                 <div class="bg-transparent h-2 rounded-full transition-all duration-300" 
                                                     style="width: {{ $kuotaData['percentage']['9-10'] }}%"></div>
                                             </div>
-                                         
                                         </div>
                                         
                                         <div class="bg-white rounded-lg p-4 border border-blue-100 shadow-sm">
@@ -223,7 +248,6 @@
                                                 <div class="bg-transparent h-2 rounded-full transition-all duration-300" 
                                                     style="width: {{ $kuotaData['percentage']['11-12'] }}%"></div>
                                             </div>
-                                           
                                         </div>
                                     </div>
                                     
@@ -232,7 +256,7 @@
                                         $alerts = [];
                                         foreach(['7-8', '9-10', '11-12'] as $cat) {
                                             if($kuotaData['percentage'][$cat] >= 100) {
-                                                $alerts[] = "Kategori {$cat} tahun sudah melebih batas";
+                                                $alerts[] = "Kategori {$cat} tahun sudah melebihi batas";
                                             } elseif($kuotaData['percentage'][$cat] >= 80) {
                                                 $alerts[] = "Kategori {$cat} tahun hampir penuh ({$kuotaData['percentage'][$cat]}%)";
                                             }
@@ -324,6 +348,9 @@
                                     </svg>
                                 </div>
                             </div>
+                         <!--    <button onclick="openAddModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
+                                <i class="fas fa-plus mr-2"></i>Tambah Pemain
+                            </button>-->
                         </div>
                     </div>
 
@@ -342,7 +369,7 @@
                                 </thead>
                                 <tbody id="playerTable">
                                     @forelse($sekolah->pemainBolas as $index => $pemain)
-                                    <tr class="border-t hover:bg-gray-50 table-hover">
+                                    <tr class="border-t hover:bg-gray-50 table-hover" data-player-id="{{ $pemain->id }}">
                                         <td class="p-3">{{ $index + 1 }}</td>
                                         <td class="p-3 font-medium">{{ $pemain->nama }}</td>
                                         <td class="p-3">{{ $pemain->umur }} tahun</td>
@@ -356,12 +383,10 @@
                                         </td>
                                         <td class="p-3 text-center">
                                             <div class="flex justify-center gap-2">
-                                                <a href="{{ route('user.pemain.edit', [$sekolah->user_token, $pemain->id]) }}" 
-                                                   class="action-btn edit">
+                                                <button onclick="editPlayer({{ $pemain->id }})" class="action-btn edit">
                                                     <i class="fas fa-edit mr-1"></i>Edit
-                                                </a>
-                                                <button onclick="confirmDelete('{{ $pemain->nama }}', '{{ $pemain->id }}')" 
-                                                        class="action-btn delete">
+                                                </button>
+                                                <button onclick="deletePlayer({{ $pemain->id }}, '{{ $pemain->nama }}')" class="action-btn delete">
                                                     <i class="fas fa-trash mr-1"></i>Hapus
                                                 </button>
                                             </div>
@@ -385,63 +410,480 @@
         </div>
     </div>
 
-    <!-- Form untuk delete (hidden) -->
-    <form id="deleteForm" method="POST" style="display: none;">
-        @csrf
-        @method('DELETE')
-    </form>
+    <!-- Edit Player Modal -->
+    <div id="editPlayerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 modal-overlay">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md modal-content">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Edit Data Pemain</h3>
+                    <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="editPlayerForm" class="p-6">
+                    <div class="mb-4">
+                        <label for="edit_nama" class="block text-sm font-medium text-gray-700 mb-2">Nama Pemain</label>
+                        <input type="text" id="edit_nama" name="nama" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit_umur" class="block text-sm font-medium text-gray-700 mb-2">Umur (tahun)</label>
+                        <input type="number" id="edit_umur" name="umur" required min="7" max="12"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Umur</label>
+                        <div class="flex flex-wrap gap-2">
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="edit_umur_kategori" value="7-8" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    7-8 Tahun
+                                </span>
+                            </label>
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="edit_umur_kategori" value="9-10" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    9-10 Tahun
+                                </span>
+                            </label>
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="edit_umur_kategori" value="11-12" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    11-12 Tahun
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeEditModal()" 
+                                class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-200">
+                            Batal
+                        </button>
+                        <button type="submit" id="updatePlayerBtn"
+                                class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-200">
+                            <span class="loading-text">Update Pemain</span>
+                            <span class="loading-spinner-container hidden">
+                                <div class="loading-spinner inline-block"></div>
+                                <span class="ml-2">Memperbarui...</span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Player Modal -->
+    <div id="addPlayerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 modal-overlay">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md modal-content">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Tambah Pemain Baru</h3>
+                    <button onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="addPlayerForm" class="p-6">
+                    <div class="mb-4">
+                        <label for="add_nama" class="block text-sm font-medium text-gray-700 mb-2">Nama Pemain</label>
+                        <input type="text" id="add_nama" name="nama" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
+                    <div class="mb-4">
+                        <label for="add_umur" class="block text-sm font-medium text-gray-700 mb-2">Umur (tahun)</label>
+                        <input type="number" id="add_umur" name="umur" required min="7" max="12"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Umur</label>
+                        <div class="flex flex-wrap gap-2">
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="add_umur_kategori" value="7-8" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    7-8 Tahun
+                                </span>
+                            </label>
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="add_umur_kategori" value="9-10" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    9-10 Tahun
+                                </span>
+                            </label>
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="add_umur_kategori" value="11-12" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    11-12 Tahun
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeAddModal()" 
+                                class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-200">
+                            Batal
+                        </button>
+                        <button type="submit" id="addPlayerBtn"
+                                class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-200">
+                            <span class="loading-text">Tambah Pemain</span>
+                            <span class="loading-spinner-container hidden">
+                                <div class="loading-spinner inline-block"></div>
+                                <span class="ml-2">Menambahkan...</span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Add Player Modal -->
+    <div id="addPlayerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 modal-overlay">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md modal-content">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Tambah Pemain Baru</h3>
+                    <button onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="addPlayerForm" class="p-6">
+                    <div class="mb-4">
+                        <label for="add_nama" class="block text-sm font-medium text-gray-700 mb-2">Nama Pemain</label>
+                        <input type="text" id="add_nama" name="nama" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
+                    <div class="mb-6">
+                        <label for="add_umur" class="block text-sm font-medium text-gray-700 mb-2">Umur</label>
+                        <select id="add_umur" name="umur" required 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="">Pilih Umur</option>
+                            <option value="7">7 tahun</option>
+                            <option value="8">8 tahun</option>
+                            <option value="9">9 tahun</option>
+                            <option value="10">10 tahun</option>
+                            <option value="11">11 tahun</option>
+                            <option value="12">12 tahun</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeAddModal()" 
+                                class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-200">
+                            Batal
+                        </button>
+                        <button type="submit" id="addPlayerBtn"
+                                class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-200">
+                            <span class="loading-text">Tambah Pemain</span>
+                            <span class="loading-spinner-container hidden">
+                                <div class="loading-spinner inline-block"></div>
+                                <span class="ml-2">Menambahkan...</span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Tambahkan function refresh quota
-            function refreshQuota() {
-                // Reload halaman untuk mendapat data terbaru
-                location.reload();
-            }
+        // Global variables
+        let currentEditingPlayerId = null;
+        const userToken = '{{ $sekolah->user_token }}';
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            // Function untuk update quota secara realtime (optional)
-            function updateQuotaDisplay() {
-                fetch(`/api/user/{{ $sekolah->user_token }}/quota`)
-                    .then(response => response.json())
-                    .then(data => {
-                        // Update display dengan data terbaru
-                        console.log('Quota data updated:', data);
-                    })
-                    .catch(error => {
-                        console.error('Error fetching quota:', error);
+        // Show alert function
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800';
+            const iconClass = type === 'success' ? 'fas fa-check-circle text-green-500' : 'fas fa-exclamation-circle text-red-500';
+            
+            const alertHTML = `
+                <div class="mb-6 ${alertClass} border rounded-lg p-4 alert-slide-down">
+                    <div class="flex items-center">
+                        <i class="${iconClass} mr-3"></i>
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-current hover:opacity-70">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            alertContainer.innerHTML = alertHTML;
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('div');
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Auto-detect kategori umur berdasarkan umur (seperti form pemain)
+        function setupUmurAutoDetect(umurInputId, radioName) {
+            document.getElementById(umurInputId).addEventListener('input', function() {
+                const umur = parseInt(this.value);
+                const radioButtons = document.querySelectorAll(`input[name="${radioName}"]`);
+                
+                // Reset all radio buttons
+                radioButtons.forEach(radio => radio.checked = false);
+                
+                // Auto select kategori berdasarkan umur
+                if (umur >= 7 && umur <= 8) {
+                    const radio7_8 = document.querySelector(`input[name="${radioName}"][value="7-8"]`);
+                    if (radio7_8) radio7_8.checked = true;
+                } else if (umur >= 9 && umur <= 10) {
+                    const radio9_10 = document.querySelector(`input[name="${radioName}"][value="9-10"]`);
+                    if (radio9_10) radio9_10.checked = true;
+                } else if (umur >= 11 && umur <= 12) {
+                    const radio11_12 = document.querySelector(`input[name="${radioName}"][value="11-12"]`);
+                    if (radio11_12) radio11_12.checked = true;
+                }
+            });
+        }
+
+        // Open add modal
+        function openAddModal() {
+            document.getElementById('addPlayerModal').classList.remove('hidden');
+            document.getElementById('add_nama').focus();
+            // Setup auto-detect untuk add modal
+            setupUmurAutoDetect('add_umur', 'add_umur_kategori');
+        }
+
+        // Close add modal
+        function closeAddModal() {
+            document.getElementById('addPlayerModal').classList.add('hidden');
+            document.getElementById('addPlayerForm').reset();
+        }
+
+        // Open edit modal
+        async function editPlayer(playerId) {
+            currentEditingPlayerId = playerId;
+            
+            try {
+                const response = await fetch(`/user/${userToken}/edit-pemain/${playerId}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('edit_nama').value = data.data.nama;
+                    document.getElementById('edit_umur').value = data.data.umur;
+                    
+                    // Auto select kategori radio button berdasarkan umur
+                    const kategori = data.data.umur_kategori;
+                    const radioButtons = document.querySelectorAll('input[name="edit_umur_kategori"]');
+                    radioButtons.forEach(radio => {
+                        radio.checked = radio.value === kategori;
                     });
-            }
-
-            // Auto refresh setiap 30 detik (optional)
-            setInterval(updateQuotaDisplay, 30000);
-        // Close alert functions
-        function closeAlert() {
-            document.getElementById('quotaAlert').style.display = 'none';
-        }
-
-        function closeSuccessAlert() {
-            document.getElementById('successAlert').style.display = 'none';
-        }
-
-        function closeErrorAlert() {
-            document.getElementById('errorAlert').style.display = 'none';
-        }
-
-        // Auto close success/error alerts after 5 seconds
-        setTimeout(function() {
-            const successAlert = document.getElementById('successAlert');
-            const errorAlert = document.getElementById('errorAlert');
-            if (successAlert) successAlert.style.display = 'none';
-            if (errorAlert) errorAlert.style.display = 'none';
-        }, 5000);
-
-        // Confirm delete function
-        function confirmDelete(nama, pemainId) {
-            if (confirm(`Yakin ingin menghapus pemain "${nama}"?\n\nData yang sudah dihapus tidak dapat dikembalikan.`)) {
-                const form = document.getElementById('deleteForm');
-                form.action = `{{ route('user.pemain.destroy', [$sekolah->user_token, ':id']) }}`.replace(':id', pemainId);
-                form.submit();
+                    
+                    document.getElementById('editPlayerModal').classList.remove('hidden');
+                    document.getElementById('edit_nama').focus();
+                    
+                    // Setup auto-detect untuk edit modal
+                    setupUmurAutoDetect('edit_umur', 'edit_umur_kategori');
+                } else {
+                    showAlert('Gagal mengambil data pemain', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan saat mengambil data', 'error');
             }
         }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editPlayerModal').classList.add('hidden');
+            document.getElementById('editPlayerForm').reset();
+            currentEditingPlayerId = null;
+        }
+
+        // Delete player
+        async function deletePlayer(playerId, playerName) {
+            if (confirm(`Yakin ingin menghapus pemain "${playerName}"?\n\nData yang sudah dihapus tidak dapat dikembalikan.`)) {
+                try {
+                    const response = await fetch(`/user/${userToken}/hapus-pemain/${playerId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showAlert(data.message, 'success');
+                        // Remove row from table
+                        const row = document.querySelector(`tr[data-player-id="${playerId}"]`);
+                        if (row) {
+                            row.remove();
+                        }
+                        // Refresh page after delay to update quota display
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert(data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert('Terjadi kesalahan saat menghapus data', 'error');
+                }
+            }
+        }
+
+        // Handle add player form submission (seperti form pemain di referensi)
+        document.getElementById('addPlayerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('addPlayerBtn');
+            const loadingText = submitBtn.querySelector('.loading-text');
+            const loadingSpinner = submitBtn.querySelector('.loading-spinner-container');
+            
+            // Show loading state
+            loadingText.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+            // Get form data
+            const nama = document.getElementById('add_nama').value;
+            const umur = document.getElementById('add_umur').value;
+            
+            // Validasi kategori umur sesuai dengan umur (seperti di referensi)
+            const umurInt = parseInt(umur);
+            let kategori = '';
+            if (umurInt >= 7 && umurInt <= 8) {
+                kategori = '7-8';
+            } else if (umurInt >= 9 && umurInt <= 10) {
+                kategori = '9-10';
+            } else if (umurInt >= 11 && umurInt <= 12) {
+                kategori = '11-12';
+            }
+            
+            if (!kategori) {
+                showAlert('Umur tidak valid! Harus antara 7-12 tahun', 'error');
+                loadingText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('nama', nama);
+            formData.append('umur', umur);
+            
+            try {
+                const response = await fetch(`/user/${userToken}/tambah-pemain`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    closeAddModal();
+                    // Refresh page to show new data and update quota
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Gagal menambahkan pemain', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan saat menambahkan data', 'error');
+            } finally {
+                // Reset loading state
+                loadingText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Handle edit player form submission
+        document.getElementById('editPlayerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentEditingPlayerId) return;
+            
+            const submitBtn = document.getElementById('updatePlayerBtn');
+            const loadingText = submitBtn.querySelector('.loading-text');
+            const loadingSpinner = submitBtn.querySelector('.loading-spinner-container');
+            
+            // Show loading state
+            loadingText.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+            // Get form data
+            const nama = document.getElementById('edit_nama').value;
+            const umur = document.getElementById('edit_umur').value;
+            
+            // Validasi kategori umur sesuai dengan umur (seperti di referensi)
+            const umurInt = parseInt(umur);
+            let kategori = '';
+            if (umurInt >= 7 && umurInt <= 8) {
+                kategori = '7-8';
+            } else if (umurInt >= 9 && umurInt <= 10) {
+                kategori = '9-10';
+            } else if (umurInt >= 11 && umurInt <= 12) {
+                kategori = '11-12';
+            }
+            
+            if (!kategori) {
+                showAlert('Umur tidak valid! Harus antara 7-12 tahun', 'error');
+                loadingText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('nama', nama);
+            formData.append('umur', umur);
+            
+            try {
+                const response = await fetch(`/user/${userToken}/update-pemain/${currentEditingPlayerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    closeEditModal();
+                    // Refresh page to show updated data and quota
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Gagal memperbarui pemain', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan saat memperbarui data', 'error');
+            } finally {
+                // Reset loading state
+                loadingText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        });
 
         // Search functionality
         document.getElementById('searchInput').addEventListener('input', function() {
@@ -471,10 +913,26 @@
             }
         });
 
-        // Add player modal (you can implement this later)
-        function addPlayerModal() {
-            alert('Fitur tambah pemain akan segera tersedia. Untuk sementara, gunakan form manual atau admin panel.');
-        }
+        // Close modal when clicking outside
+        document.getElementById('editPlayerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        document.getElementById('addPlayerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddModal();
+            }
+        });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEditModal();
+                closeAddModal();
+            }
+        });
     </script>
 </body>
 </html>
