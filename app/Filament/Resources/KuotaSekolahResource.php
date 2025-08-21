@@ -15,8 +15,8 @@ class KuotaSekolahResource extends Resource
     protected static ?string $model = KuotaSekolah::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-adjustments-horizontal';
-    
-    protected static ?string $navigationLabel = 'Kuota Sekolah';
+      protected static ?string $navigationLabel = 'Manajemen Kuota SSB';
+    protected static ?string $pluralLabel = 'Manajemen Kuota SSB';
 
     public static function form(Form $form): Form
     {
