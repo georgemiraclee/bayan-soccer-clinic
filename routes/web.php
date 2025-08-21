@@ -27,19 +27,23 @@ Route::get('/sekolahbola-export', function () {
 })->name('sekolahbola.export');
 
 // UPDATED: User management routes menggunakan token UUID, bukan ID
-Route::prefix('user/{userToken}')->name('user.sekolah.show')->group(function () {
-    // Halaman utama user management
-    Route::get('/', [UserSekolahController::class, 'show'])->name('show');
+Route::prefix('user/{userToken}')->name('user.pemain.')->group(function () {
+    Route::get('/', [App\Http\Controllers\UserSekolahController::class, 'index'])
+        ->name('index');
     
-    // API untuk update data sekolah
-    Route::put('/sekolah', [UserSekolahController::class, 'updateSekolah'])->name('update');
+    Route::get('/edit-pemain/{pemain}', [App\Http\Controllers\UserSekolahController::class, 'edit'])
+        ->name('edit');
     
-    // API untuk update data pemain
-    Route::put('/pemain/{pemainId}', [UserSekolahController::class, 'updatePemain'])->name('pemain.update');
+    Route::put('/update-pemain/{pemain}', [App\Http\Controllers\UserSekolahController::class, 'updatepemain'])
+        ->name('update');
     
-    // API untuk hapus pemain
-    Route::delete('/pemain/{pemainId}', [UserSekolahController::class, 'deletePemain'])->name('pemain.delete');
+    Route::delete('/hapus-pemain/{pemain}', [App\Http\Controllers\UserSekolahController::class, 'deletepemain'])
+        ->name('destroy');
+    
+    Route::post('/tambah-pemain', [App\Http\Controllers\UserSekolahController::class, 'store'])
+        ->name('store');
 });
+
 
 Route::get('/user/{userToken}', [UserSekolahController::class, 'show'])
     ->name('user.sekolah.show')

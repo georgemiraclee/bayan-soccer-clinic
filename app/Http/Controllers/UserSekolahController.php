@@ -22,7 +22,15 @@ class UserSekolahController extends Controller
             abort(404, 'Halaman tidak ditemukan atau token tidak valid');
         }
 
-        return view('user.sekolah.show', compact('sekolah'));
+        // Hitung kuota berdasarkan kategori umur
+        $kuotaData = [
+            'total' => $sekolah->pemainBola->count(),
+            '7-8' => $sekolah->pemainBola->where('umur_kategori', '7-8')->count(),
+            '9-10' => $sekolah->pemainBola->where('umur_kategori', '9-10')->count(),
+            '11-12' => $sekolah->pemainBola->where('umur_kategori', '11-12')->count(),
+        ];
+
+        return view('user.sekolah.show', compact('sekolah', 'kuotaData'));
     }
 
     /**
@@ -93,6 +101,48 @@ class UserSekolahController extends Controller
             'success' => true,
             'message' => 'Data pemain berhasil diperbarui',
             'data' => $pemain->fresh()
+        ]);
+    }
+
+    /**
+     * Tambah pemain baru
+     */
+    public function storePemain(Request $request, $userToken)
+    {
+        $sekolah = SekolahBola::byUserToken($userToken)->firstOrFail();
+
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required|string|max:255',
+            'umur' => 'required|integer|min:7|max:12',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Auto set kategori umur
+        $umurKategori = match(true) {
+            $request->umur >= 7 && $request->umur <= 8 => '7-8',
+            $request->umur >= 9 && $request->umur <= 10 => '9-10',
+            $request->umur >= 11 && $request->umur <= 12 => '11-12',
+            default => '7-8'
+        };
+
+        $pemain = PemainBola::create([
+            'nama' => $request->nama,
+            'umur' => $request->umur,
+            'umur_kategori' => $umurKategori,
+            'sekolah_bola_id' => $sekolah->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pemain baru berhasil ditambahkan',
+            'data' => $pemain
         ]);
     }
 
