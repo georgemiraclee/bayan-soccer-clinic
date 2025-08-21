@@ -18,7 +18,7 @@
             <h1 class="mt-3 sm:mt-4 text-3xl sm:text-5xl font-extrabold text-orange-400 tracking-wide drop-shadow-sm">
                 Bayan Soccer Clinic
             </h1>
-            <p class="text-gray-600 font-semibold mt-1 sm:mt-2 text-sm sm:text-base">Formulir Pendaftaran Sekolah Bola & Pemain</p>
+            <p class="text-gray-600 font-semibold mt-1 sm:mt-2 text-sm sm:text-base">Formulir Pendaftaran SSB</p>
         </div>
 
         <!-- Progress Indicator -->
@@ -154,19 +154,36 @@
             </div>
         </div>
 
-        <!-- Success Message -->
+       <!-- Success Message -->
         <div id="success-message" class="bg-white shadow-lg rounded-lg p-6 sm:p-8 text-center hidden">
             <div class="text-green-600 text-5xl sm:text-6xl mb-4">✓</div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Pendaftaran Berhasil!</h2>
-            <p class="text-gray-600 mb-6 text-sm sm:text-base">Sekolah bola dan pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.</p>
-             <button onclick="exportToPDF()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition duration-300 mb-3">
+            <p class="text-gray-600 mb-4 text-sm sm:text-base">Sekolah bola dan pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.</p>
+            
+            <!-- Additional Information -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            <strong>Informasi Penting:</strong><br>
+                            List pendaftar saat ini bersifat sementara. Jumlah kuota yang akan didapatkan akan diinformasikan melalui link website terpisah dan akan diinformasikan melalui nomor telepon PIC terdaftar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="exportToPDF()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition duration-300 mb-3">
                 Export ke PDF
             </button>
             <button onclick="resetForm()" class="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition duration-300">
                 Daftar SSB Baru
             </button>
         </div>
-    </div>
 
     <!-- Footer -->
     <footer class="mt-10 sm:mt-12 text-center font-semibold text-gray-600 text-xs sm:text-sm">
@@ -176,7 +193,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
         <script>
-            async function exportToPDF() {
+           async function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const colors = {
@@ -189,7 +206,7 @@
                 lightOrange: [255, 237, 213], // Light orange
                 lightGray: [156, 163, 175]    // Light gray
             };
-             const currentDate = new Date().toLocaleDateString('id-ID', {
+            const currentDate = new Date().toLocaleDateString('id-ID', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -264,6 +281,42 @@
                 },
                 alternateRowStyles: { fillColor: [245, 245, 245] },
             });
+
+            // ====== Important Notice ======
+            const finalY = doc.lastAutoTable.finalY || 150;
+            
+            // Background box for notice
+            doc.setFillColor(255, 248, 220); // Light yellow background
+            doc.setDrawColor(255, 193, 7); // Yellow border
+            doc.setLineWidth(1);
+            doc.roundedRect(14, finalY + 10, 182, 35, 3, 3, 'FD');
+            
+            // Warning icon (triangle)
+            doc.setFillColor(255, 193, 7);
+            doc.triangle(22, finalY + 18, 26, finalY + 25, 18, finalY + 25);
+            doc.setFillColor(255, 248, 220);
+            doc.setTextColor(180, 83, 9);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.text("!", 21.5, finalY + 23, { align: "center" });
+            
+            // Notice title
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(180, 83, 9); // Dark yellow/orange
+            doc.text("INFORMASI PENTING", 32, finalY + 18);
+            
+            // Notice content
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(146, 64, 14); // Dark orange
+            const noticeText = "List pendaftar saat ini bersifat sementara. Jumlah kuota yang akan didapatkan akan";
+            const noticeText2 = "diinformasikan melalui link website terpisah dan akan diinformasikan melalui nomor";
+            const noticeText3 = "telepon PIC terdaftar.";
+            
+            doc.text(noticeText, 18, finalY + 28);
+            doc.text(noticeText2, 18, finalY + 35);
+            doc.text(noticeText3, 18, finalY + 42);
 
             // ====== Footer ======
             const pageHeight = doc.internal.pageSize.height;
