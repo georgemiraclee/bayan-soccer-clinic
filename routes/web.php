@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\PublicFormController;
 use Illuminate\Support\Facades\Route;
 use App\Exports\SekolahBolaExport;
@@ -26,24 +25,14 @@ Route::get('/sekolahbola-export', function () {
     return back()->with('error', 'Tidak ada data untuk diexport.');
 })->name('sekolahbola.export');
 
-// UPDATED: User management routes menggunakan token UUID, bukan ID
+// User management routes menggunakan token UUID, bukan ID
 Route::prefix('user/{userToken}')->name('user.pemain.')->group(function () {
-    Route::get('/', [App\Http\Controllers\UserSekolahController::class, 'index'])
-        ->name('index');
-    
-    Route::get('/edit-pemain/{pemain}', [App\Http\Controllers\UserSekolahController::class, 'edit'])
-        ->name('edit');
-    
-    Route::put('/update-pemain/{pemain}', [App\Http\Controllers\UserSekolahController::class, 'updatepemain'])
-        ->name('update');
-    
-    Route::delete('/hapus-pemain/{pemain}', [App\Http\Controllers\UserSekolahController::class, 'deletepemain'])
-        ->name('destroy');
-    
-    Route::post('/tambah-pemain', [App\Http\Controllers\UserSekolahController::class, 'store'])
-        ->name('store');
+    Route::get('/', [UserSekolahController::class, 'pemainIndex'])->name('index');
+    Route::get('/edit-pemain/{pemain}', [UserSekolahController::class, 'edit'])->name('edit');
+    Route::post('/update-pemain/{pemain}', [UserSekolahController::class, 'updatePemain'])->name('update');
+    Route::delete('/hapus-pemain/{pemain}', [UserSekolahController::class, 'deletePemain'])->name('destroy');
+    Route::post('/tambah-pemain', [UserSekolahController::class, 'storePemain'])->name('store');
 });
-
 
 Route::get('/user/{userToken}', [UserSekolahController::class, 'show'])
     ->name('user.sekolah.show')
