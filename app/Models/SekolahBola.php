@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SekolahBola extends Model
 {
@@ -63,6 +64,50 @@ class SekolahBola extends Model
     {
         return url('/user/' . $this->user_token);
     }
+    public function kuotaSekolah(): HasOne
+        {
+            return $this->hasOne(KuotaSekolah::class);
+        }
+
+        // Tambahkan method helper ini
+        public function getKuotaDataAttribute(): array
+        {
+            $kuota = $this->kuotaSekolah;
+            
+            if (!$kuota) {
+                return [
+                    'total' => 0,
+                    '7-8' => 0,
+                    '9-10' => 0,
+                    '11-12' => 0,
+                    'has_quota' => false
+                ];
+            }
+
+            return [
+                'total' => $kuota->kuota_7_8 + $kuota->kuota_9_10 + $kuota->kuota_11_12,
+                '7-8' => $kuota->kuota_7_8,
+                '9-10' => $kuota->kuota_9_10,
+                '11-12' => $kuota->kuota_11_12,
+                'has_quota' => true
+            ];
+        }
+
+        public function getCurrentPlayerCounts(): array
+        {
+            $counts = $this->pemainBolas()
+                ->selectRaw('umur_kategori, COUNT(*) as count')
+                ->groupBy('umur_kategori')
+                ->pluck('count', 'umur_kategori')
+                ->toArray();
+
+            return [
+                '7-8' => $counts['7-8'] ?? 0,
+                '9-10' => $counts['9-10'] ?? 0,
+                '11-12' => $counts['11-12'] ?? 0,
+                'total' => array_sum($counts)
+            ];
+        }
 
     /**
      * Scope untuk mencari berdasarkan user_token
