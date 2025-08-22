@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SekolahBolaResource\Pages;
 use App\Filament\Resources\SekolahBolaResource\RelationManagers\PemainBolasRelationManager;
 use App\Models\SekolahBola;
+use App\Models\KuotaSekolah;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Notifications\Notification;
 
 class SekolahBolaResource extends Resource
 {
@@ -86,6 +88,47 @@ class SekolahBolaResource extends Resource
                     ->badge()
                     ->color('info')
                     ->alignCenter(),
+
+                // Kolom kuota
+                Tables\Columns\TextColumn::make('kuota_info')
+                    ->label('Kuota (7-8 | 9-10 | 11-12)')
+                    ->getStateUsing(function ($record) {
+                        $kuota = $record->kuotaSekolah;
+                        if (!$kuota) {
+                            return 'Belum diset';
+                        }
+                        return "{$kuota->kuota_7_8} | {$kuota->kuota_9_10} | {$kuota->kuota_11_12}";
+                    })
+                    ->badge()
+                    ->color(fn ($record) => $record->kuotaSekolah ? 'success' : 'gray')
+                    ->alignCenter(),
+
+                Tables\Columns\TextColumn::make('kuota_status')
+                    ->label('Status Kuota')
+                    ->getStateUsing(function ($record) {
+                        $kuota = $record->kuotaSekolah;
+                        if (!$kuota) {
+                            return 'Tidak ada kuota';
+                        }
+                        $totalKuota = $kuota->kuota_7_8 + $kuota->kuota_9_10 + $kuota->kuota_11_12;
+                        $totalPemain = $record->pemainBolas->count();
+                        
+                        if ($totalPemain >= $totalKuota) {
+                            return 'Penuh';
+                        } elseif ($totalPemain >= ($totalKuota * 0.8)) {
+                            return 'Hampir Penuh';
+                        } else {
+                            return 'Tersedia';
+                        }
+                    })
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        'Penuh' => 'danger',
+                        'Hampir Penuh' => 'warning',
+                        'Tersedia' => 'success',
+                        default => 'gray'
+                    })
+                    ->alignCenter(),
                     
                 Tables\Columns\TextColumn::make('user_link')
                     ->label('User Link')
@@ -106,74 +149,110 @@ class SekolahBolaResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('kuota_status')
+                    ->label('Status Kuota')
+                    ->options([
+                        'ada' => 'Sudah Ada Kuota',
+                        'kosong' => 'Belum Ada Kuota',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] === 'ada',
+                            fn (Builder $query): Builder => $query->whereHas('kuotaSekolah'),
+                        )->when(
+                            $data['value'] === 'kosong',
+                            fn (Builder $query): Builder => $query->whereDoesntHave('kuotaSekolah'),
+                        );
+                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-                
-                // Action untuk melihat pemain dengan modal sederhana
-                Tables\Actions\Action::make('lihat_pemain')
-                    ->label('Lihat Pemain')
-                    ->icon('heroicon-m-users')
+
+                // Action untuk melihat detail kuota (dipindah dari kelola kuota)
+                Tables\Actions\Action::make('detail_kuota')
+                    ->label('Detail Kuota')
+                    ->icon('heroicon-m-information-circle')
                     ->color('info')
-                    ->modalHeading(fn ($record) => 'Daftar Pemain - ' . $record->nama)
+                    ->visible(fn ($record) => $record->kuotaSekolah !== null)
+                    ->modalHeading(fn ($record) => 'Detail Kuota - ' . $record->nama)
                     ->modalContent(function ($record) {
-                        $pemainBolas = $record->pemainBolas()->orderBy('nama')->get();
-                        
-                        if ($pemainBolas->isEmpty()) {
-                            return view('filament::components.empty-state', [
-                                'icon' => 'heroicon-o-user-group',
-                                'heading' => 'Belum Ada Pemain',
-                                'description' => 'Sekolah bola ini belum memiliki pemain terdaftar.',
-                            ]);
+                        $kuota = $record->kuotaSekolah;
+                        if (!$kuota) {
+                            return 'Kuota belum diset untuk sekolah ini.';
                         }
+
+                        // Hitung pemain per kategori
+                        $pemain = $record->pemainBolas;
+                        $pemain_7_8 = $pemain->where('umur_kategori', '7-8')->count();
+                        $pemain_9_10 = $pemain->where('umur_kategori', '9-10')->count();
+                        $pemain_11_12 = $pemain->where('umur_kategori', '11-12')->count();
                         
-                        // Menggunakan HTML string langsung untuk menghindari masalah view
-                        $html = '<div class="space-y-4">';
-                        $html .= '<div class="mb-4 text-sm text-gray-600 dark:text-gray-400">Total: ' . $pemainBolas->count() . ' pemain</div>';
-                        $html .= '<div class="overflow-x-auto">';
-                        $html .= '<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">';
-                        $html .= '<thead class="bg-gray-50 dark:bg-gray-800">';
-                        $html .= '<tr>';
-                        $html .= '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nama</th>';
-                        $html .= '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Umur</th>';
-                        $html .= '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kategori</th>';
-                        $html .= '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Terdaftar</th>';
-                        $html .= '</tr>';
-                        $html .= '</thead>';
-                        $html .= '<tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">';
+                        $html = '<div class="space-y-6">';
+                        $html .= '<div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">';
+                        $html .= '<h3 class="font-semibold text-lg mb-4">Ringkasan Kuota vs Pemain Terdaftar</h3>';
+                        $html .= '<div class="grid grid-cols-3 gap-4">';
                         
-                        foreach ($pemainBolas as $pemain) {
-                            $badgeColor = match($pemain->umur_kategori) {
-                                '7-8' => 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100',
-                                '9-10' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100',
-                                '11-12' => 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
-                                default => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
-                            };
-                            
-                            $html .= '<tr class="hover:bg-gray-50 dark:hover:bg-gray-800">';
-                            $html .= '<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">' . e($pemain->nama) . '</td>';
-                            $html .= '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">' . $pemain->umur . ' tahun</td>';
-                            $html .= '<td class="px-6 py-4 whitespace-nowrap">';
-                            $html .= '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $badgeColor . '">';
-                            $html .= $pemain->umur_kategori . ' tahun';
-                            $html .= '</span>';
-                            $html .= '</td>';
-                            $html .= '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">' . $pemain->created_at->format('d M Y') . '</td>';
-                            $html .= '</tr>';
-                        }
-                        
-                        $html .= '</tbody>';
-                        $html .= '</table>';
+                        // Kategori 7-8
+                        $persentase_7_8 = $kuota->kuota_7_8 > 0 ? round(($pemain_7_8 / $kuota->kuota_7_8) * 100) : 0;
+                        $html .= '<div class="text-center p-3 bg-white dark:bg-gray-900 rounded border">';
+                        $html .= '<div class="text-sm font-medium text-gray-500 dark:text-gray-400">7-8 Tahun</div>';
+                        $html .= '<div class="text-2xl font-bold text-blue-600">' . $pemain_7_8 . ' / ' . $kuota->kuota_7_8 . '</div>';
+                        $html .= '<div class="text-sm text-gray-500">(' . $persentase_7_8 . '%)</div>';
                         $html .= '</div>';
+                        
+                        // Kategori 9-10
+                        $persentase_9_10 = $kuota->kuota_9_10 > 0 ? round(($pemain_9_10 / $kuota->kuota_9_10) * 100) : 0;
+                        $html .= '<div class="text-center p-3 bg-white dark:bg-gray-900 rounded border">';
+                        $html .= '<div class="text-sm font-medium text-gray-500 dark:text-gray-400">9-10 Tahun</div>';
+                        $html .= '<div class="text-2xl font-bold text-yellow-600">' . $pemain_9_10 . ' / ' . $kuota->kuota_9_10 . '</div>';
+                        $html .= '<div class="text-sm text-gray-500">(' . $persentase_9_10 . '%)</div>';
+                        $html .= '</div>';
+                        
+                        // Kategori 11-12
+                        $persentase_11_12 = $kuota->kuota_11_12 > 0 ? round(($pemain_11_12 / $kuota->kuota_11_12) * 100) : 0;
+                        $html .= '<div class="text-center p-3 bg-white dark:bg-gray-900 rounded border">';
+                        $html .= '<div class="text-sm font-medium text-gray-500 dark:text-gray-400">11-12 Tahun</div>';
+                        $html .= '<div class="text-2xl font-bold text-green-600">' . $pemain_11_12 . ' / ' . $kuota->kuota_11_12 . '</div>';
+                        $html .= '<div class="text-sm text-gray-500">(' . $persentase_11_12 . '%)</div>';
+                        $html .= '</div>';
+                        
+                        $html .= '</div>';
+                        $html .= '</div>';
+                        
+                        // Total
+                        $totalKuota = $kuota->kuota_7_8 + $kuota->kuota_9_10 + $kuota->kuota_11_12;
+                        $totalPemain = $pemain_7_8 + $pemain_9_10 + $pemain_11_12;
+                        $persentaseTotal = $totalKuota > 0 ? round(($totalPemain / $totalKuota) * 100) : 0;
+                        
+                        $html .= '<div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">';
+                        $html .= '<h4 class="font-semibold text-lg mb-2">Total Keseluruhan</h4>';
+                        $html .= '<div class="text-3xl font-bold text-blue-700 dark:text-blue-300">' . $totalPemain . ' / ' . $totalKuota . '</div>';
+                        $html .= '<div class="text-sm text-blue-600 dark:text-blue-400">Terisi ' . $persentaseTotal . '%</div>';
+                        $html .= '</div>';
+                        
+                        // Catatan
+                        if ($kuota->notes) {
+                            $html .= '<div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">';
+                            $html .= '<h4 class="font-semibold mb-2">Catatan:</h4>';
+                            $html .= '<p class="text-gray-700 dark:text-gray-300">' . e($kuota->notes) . '</p>';
+                            $html .= '</div>';
+                        }
+                        
+                        // Info update
+                        $html .= '<div class="text-xs text-gray-500 border-t pt-2">';
+                        $html .= 'Terakhir diupdate: ' . $kuota->updated_at->format('d M Y H:i');
+                        if ($kuota->updatedBy) {
+                            $html .= ' oleh ' . $kuota->updatedBy->name;
+                        }
+                        $html .= '</div>';
+                        
                         $html .= '</div>';
                         
                         return new \Illuminate\Support\HtmlString($html);
                     })
-                    ->modalWidth('5xl')
-                    ->slideOver(),
+                    ->modalWidth('4xl'),
+                
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
