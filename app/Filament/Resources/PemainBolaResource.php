@@ -19,16 +19,16 @@ class PemainBolaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $navigationLabel = 'Pemain SSB';
-    protected static ?string $pluralLabel = 'Daftar Pemain SSB';
-    protected static ?string $modelLabel = 'Pemain SSB';
+    protected static ?string $navigationLabel = 'List Pemain SSB';
+    protected static ?string $pluralLabel = 'List Pemain SSB';
+    protected static ?string $modelLabel = 'List Pemain SSB';
 
     public static function form(Form $form): Form
     {
         return $form->schema([
             Forms\Components\Select::make('sekolah_bola_id')
                 ->relationship('sekolahBola', 'nama')
-                ->label('Sekolah Bola')
+                ->label('SSB')
                 ->required(),
 
             Forms\Components\TextInput::make('nama')
@@ -73,7 +73,7 @@ class PemainBolaResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('sekolahBola.nama')
-                    ->label('Sekolah Bola')
+                    ->label('SSB')
                     ->sortable()
                     ->searchable(),
 
@@ -92,7 +92,7 @@ class PemainBolaResource extends Resource
                     ]),
 
                 Tables\Filters\SelectFilter::make('sekolah_bola_id')
-                    ->label('Sekolah Bola')
+                    ->label('SSB')
                     ->relationship('sekolahBola', 'nama'),
 
                 Tables\Filters\SelectFilter::make('umur')
@@ -123,9 +123,9 @@ class PemainBolaResource extends Resource
                                     Column::make('nama')->heading('Nama Pemain'),
                                     Column::make('umur')->heading('Umur'),
                                     Column::make('umur_kategori')->heading('Kategori Umur'),
-                                    Column::make('sekolahBola.nama')->heading('Sekolah Bola'),
-                                    Column::make('sekolahBola.pic')->heading('PIC Sekolah'),
-                                    Column::make('sekolahBola.telepon')->heading('Telepon Sekolah'),
+                                    Column::make('sekolahBola.nama')->heading('SSB'),
+                                    Column::make('sekolahBola.pic')->heading('PIC SSB'),
+                                    Column::make('sekolahBola.telepon')->heading('Telepon SSB'),
                                     Column::make('created_at')
                                         ->heading('Tanggal Daftar')
                                         ->formatStateUsing(fn ($state) => $state?->format('d/m/Y')),
@@ -146,9 +146,9 @@ class PemainBolaResource extends Resource
                                 Column::make('nama')->heading('Nama Pemain'),
                                 Column::make('umur')->heading('Umur'),
                                 Column::make('umur_kategori')->heading('Kategori Umur'),
-                                Column::make('sekolahBola.nama')->heading('Sekolah Bola'),
-                                Column::make('sekolahBola.pic')->heading('PIC Sekolah'),
-                                Column::make('sekolahBola.telepon')->heading('Telepon Sekolah'),
+                                Column::make('sekolahBola.nama')->heading('SSB'),
+                                Column::make('sekolahBola.pic')->heading('PIC SSB'),
+                                Column::make('sekolahBola.telepon')->heading('Telepon SSB'),
                                 Column::make('created_at')
                                     ->heading('Tanggal Daftar')
                                     ->formatStateUsing(fn ($state) => $state?->format('d/m/Y')),

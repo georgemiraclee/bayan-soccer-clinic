@@ -172,7 +172,7 @@ class PemainBolasRelationManager extends RelationManager
             ])
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('Belum Ada Pemain')
-            ->emptyStateDescription('Sekolah bola ini belum memiliki pemain terdaftar.')
+            ->emptyStateDescription('SSB ini belum memiliki pemain terdaftar.')
             ->emptyStateIcon('heroicon-o-user-group')
             ->striped();
     }
