@@ -12,9 +12,9 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6">
         <!-- Header dengan Logo -->
         <div class="text-center mb-8 sm:mb-10">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFOrFbGVZY7ALuvh8n0LxNt6P62Z11oQLMCXdXptoQPCxu2vvGAUyiHLdo5pc9irK_Nik&usqp=CAU" 
+            <img src="/images/logo.png" 
                  alt="Bayan Soccer Clinic" 
-                 class="mx-auto w-20 h-20 sm:w-24 sm:h-28 rounded-full shadow-lg">
+                 class="mx-auto w-18 h-20 sm:w-22 sm:h-24">
             <h1 class="mt-3 sm:mt-4 text-3xl sm:text-5xl font-extrabold text-orange-400 tracking-wide drop-shadow-sm">
                 Bayan Soccer Clinic
             </h1>
@@ -26,7 +26,7 @@
             <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8">
                 <div class="flex flex-col sm:flex-row items-center text-center sm:text-left">
                     <div id="step1-indicator" class="w-8 h-8 sm:w-10 sm:h-10 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                    <span id="step1-text" class="mt-1 sm:mt-0 sm:ml-2 font-medium text-orange-600 text-sm sm:text-base">Daftar Sekolah Bola</span>
+                    <span id="step1-text" class="mt-1 sm:mt-0 sm:ml-2 font-medium text-orange-600 text-sm sm:text-base">Daftar SSB</span>
                 </div>
                 <div class="hidden sm:block flex-1 h-1 bg-gray-300" id="progress-line"></div>
                 <div class="flex flex-col sm:flex-row items-center text-center sm:text-left">
@@ -38,13 +38,13 @@
 
         <!-- Form Sekolah Bola -->
         <div id="form-sekolah" class="bg-white shadow-lg rounded-lg p-4 sm:p-8">
-            <h1 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-800">Form Pendaftaran Sekolah Bola</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-800">Form Pendaftaran SSB</h1>
             
             <form id="sekolah-form" class="space-y-4 sm:space-y-6">
                 <div class="grid gap-4 sm:gap-6 md:grid-cols-2">
                     <div>
                         <label class="block font-medium text-gray-700 mb-1 sm:mb-2">Nama SSB *</label>
-                        <input type="text" id="nama_sekolah" required class="w-full border border-gray-300 rounded-lg p-2 sm:p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Masukkan nama sekolah bola">
+                        <input type="text" id="nama_sekolah" required class="w-full border border-gray-300 rounded-lg p-2 sm:p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Masukkan nama SSB">
                     </div>
                     
                     <div>
@@ -60,13 +60,13 @@
                     </div>
                     
                     <div>
-                        <label class="block font-medium text-gray-700 mb-1 sm:mb-2">No. Telepon *</label>
+                        <label class="block font-medium text-gray-700 mb-1 sm:mb-2">No. Telepon yang dapat dihubungi *</label>
                         <input type="tel" id="telepon" required class="w-full border border-gray-300 rounded-lg p-2 sm:p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="08xxxxxxxxxx">
                     </div>
                 </div>
 
                 <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition duration-300 transform hover:scale-105">
-                    Lanjut ke Pendaftaran Pemain
+                    Lanjut Daftar Pemain
                 </button>
             </form>
         </div>
@@ -82,9 +82,9 @@
 
             <!-- Info Sekolah -->
             <div class="bg-orange-50 p-4 rounded-lg mb-6 text-sm sm:text-base">
-                <h3 class="font-semibold text-orange-800 mb-2">Informasi Sekolah Bola:</h3>
-                <p class="text-orange-700"><strong>Nama:</strong> <span id="info-nama"></span></p>
-                <p class="text-orange-700"><strong>PIC:</strong> <span id="info-pic"></span></p>
+                <h3 class="font-semibold text-orange-800 mb-2">Informasi SSB:</h3>
+                <p class="text-orange-700"><strong>Nama SSB:</strong> <span id="info-nama"></span></p>
+                <p class="text-orange-700"><strong>PIC SSB:</strong> <span id="info-pic"></span></p>
                 <p class="text-orange-700"><strong>Email:</strong> <span id="info-email"></span></p>
                 <p class="text-orange-700"><strong>Telepon:</strong> <span id="info-telepon"></span></p>
             </div>
@@ -144,12 +144,12 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4">
+              <div class="flex flex-col sm:flex-row gap-4">
+               <button onclick="selesaiPendaftaran()" id="btn-selesai" class="w-full sm:flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                    Selesai Pendaftaran
+                </button>
                 <button onclick="kembaliKeSekolah()" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-300">
                     Kembali
-                </button>
-                <button onclick="selesaiPendaftaran()" id="btn-selesai" class="w-full sm:flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                    Selesai Pendaftaran
                 </button>
             </div>
         </div>
@@ -158,7 +158,7 @@
         <div id="success-message" class="bg-white shadow-lg rounded-lg p-6 sm:p-8 text-center hidden">
             <div class="text-green-600 text-5xl sm:text-6xl mb-4">✓</div>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Pendaftaran Berhasil!</h2>
-            <p class="text-gray-600 mb-4 text-sm sm:text-base">Sekolah bola dan pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.</p>
+            <p class="text-gray-600 mb-4 text-sm sm:text-base">SSB dan pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.</p>
             
             <!-- Additional Information -->
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
@@ -548,7 +548,7 @@
                     
                     // Update success message dengan link ke admin
                     document.querySelector('#success-message p').innerHTML = `
-                        Sekolah bola dan ${result.data.jumlah_pemain} pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.<br>
+                        SSB dan ${result.data.jumlah_pemain} pemain telah berhasil didaftarkan ke sistem Bayan Soccer Clinic.<br>
                     `;
                 } else {
                     alert('Terjadi kesalahan: ' + result.message);
