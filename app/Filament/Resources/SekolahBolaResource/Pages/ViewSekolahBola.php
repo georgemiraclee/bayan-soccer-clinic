@@ -109,13 +109,13 @@ class ViewSekolahBola extends ViewRecord
         return $infolist
             ->schema([
                 // Informasi Sekolah Bola
-                Infolists\Components\Section::make('Informasi Sekolah Bola')
+                Infolists\Components\Section::make('Informasi SSB')
                     ->icon('heroicon-o-building-office')
                     ->schema([
                         Infolists\Components\Grid::make(2)
                             ->schema([
                                 Infolists\Components\TextEntry::make('nama')
-                                    ->label('Nama Sekolah Bola')
+                                    ->label('Nama SSB')
                                     ->weight('bold'),
                                     
                                 Infolists\Components\TextEntry::make('pic')
@@ -148,7 +148,7 @@ class ViewSekolahBola extends ViewRecord
                     ->schema([
                         Infolists\Components\TextEntry::make('no_quota_message')
                             ->hiddenLabel()
-                            ->formatStateUsing(fn () => '⚠️ Kuota untuk sekolah bola ini belum diatur. Silakan gunakan tombol "Kelola Kuota" untuk mengatur kuota.')
+                            ->formatStateUsing(fn () => '⚠️ Kuota untuk SSB ini belum diatur. Silakan gunakan tombol "Kelola Kuota" untuk mengatur kuota.')
                             ->badge()
                             ->color('warning'),
                     ])

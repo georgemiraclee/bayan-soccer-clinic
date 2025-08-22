@@ -23,16 +23,16 @@ class SekolahBolaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
 
-    protected static ?string $navigationLabel = 'Daftar SSB';
-    protected static ?string $pluralLabel = 'Daftar Sekolah Sepak Bola';
-    protected static ?string $modelLabel = 'Daftar SSB';
+    protected static ?string $navigationLabel = 'List SSB';
+    protected static ?string $pluralLabel = 'List SSB';
+    protected static ?string $modelLabel = 'List SSB';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('nama')
-                    ->label('Nama Sekolah Bola')
+                    ->label('Nama SSB')
                     ->required()
                     ->maxLength(255),
 
@@ -67,7 +67,7 @@ class SekolahBolaResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('nama')
-                    ->label('Nama Sekolah Bola')
+                    ->label('Nama SSB')
                     ->searchable()
                     ->sortable(),
 
@@ -179,7 +179,7 @@ class SekolahBolaResource extends Resource
                     ->modalContent(function ($record) {
                         $kuota = $record->kuotaSekolah;
                         if (!$kuota) {
-                            return 'Kuota belum diset untuk sekolah ini.';
+                            return 'Kuota belum diset untuk SSB ini.';
                         }
 
                         // Hitung pemain per kategori
@@ -263,7 +263,7 @@ class SekolahBolaResource extends Resource
                                 ->withFilename(fn () => 'data-sekolah-bola-' . date('Y-m-d'))
                                 ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
                                 ->withColumns([
-                                    Column::make('nama')->heading('Nama Sekolah Bola'),
+                                    Column::make('nama')->heading('Nama SSB'),
                                     Column::make('pic')->heading('PIC'),
                                     Column::make('email')->heading('Email'),
                                     Column::make('telepon')->heading('Nomor Telepon'),
@@ -289,7 +289,7 @@ class SekolahBolaResource extends Resource
                             ->withFilename(fn () => 'semua-data-sekolah-bola-' . date('Y-m-d'))
                             ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
                             ->withColumns([
-                                Column::make('nama')->heading('Nama Sekolah Bola'),
+                                Column::make('nama')->heading('Nama SSB'),
                                 Column::make('pic')->heading('PIC'),
                                 Column::make('email')->heading('Email'),
                                 Column::make('telepon')->heading('Nomor Telepon'),

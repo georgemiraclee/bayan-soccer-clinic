@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Support\HtmlString;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -27,11 +28,58 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('adminajah')
             ->login()
-            ->brandName('Bayan Soccer Clinic')
-            ->brandLogo('https://rec-data.kalibrr.com/www.kalibrr.com/logos/GKTW5JUNVCCLNZFJFEE7ESSU26UQKVR5QKN7E65J-64ab6a30.png') 
-            ->brandLogoHeight('50px')
+            ->brandName(new HtmlString('
+                <div class="flex items-center space-x-1">
+                    <div class="relative">
+                        <img id="logo-light" src="' . asset('images/black.png') . '" 
+                             alt="Logo" 
+                             class="h-8 w-auto">
+                        <img id="logo-dark" src="' . asset('images/white.png') . '" 
+                             alt="Logo" 
+                             class="h-8 w-auto hidden">
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-lg font-extrabold text-primary-500 dark:text-white">SOCCER CLINIC</span>
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">Admin Dashboard</span>
+                    </div>
+                </div>
+                <script>
+                    // Function to update logo based on theme
+                    function updateLogo() {
+                        const isDark = document.documentElement.classList.contains("dark") || 
+                                      document.body.classList.contains("dark") ||
+                                      localStorage.getItem("theme") === "dark";
+                        
+                        const lightLogo = document.getElementById("logo-light");
+                        const darkLogo = document.getElementById("logo-dark");
+                        
+                        if (lightLogo && darkLogo) {
+                            if (isDark) {
+                                lightLogo.classList.add("hidden");
+                                darkLogo.classList.remove("hidden");
+                            } else {
+                                lightLogo.classList.remove("hidden");
+                                darkLogo.classList.add("hidden");
+                            }
+                        }
+                    }
+                    
+                    // Update logo on page load
+                    document.addEventListener("DOMContentLoaded", updateLogo);
+                    
+                    // Watch for theme changes
+                    const observer = new MutationObserver(updateLogo);
+                    observer.observe(document.documentElement, {
+                        attributes: true,
+                        attributeFilter: ["class"]
+                    });
+                    
+                    // Also watch for localStorage changes (theme toggle)
+                    window.addEventListener("storage", updateLogo);
+                </script>
+            '))
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Orange,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -40,7 +88,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-
             ])
             ->middleware([
                 EncryptCookies::class,
