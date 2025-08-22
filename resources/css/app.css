@@ -9,3 +9,56 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Tambahkan CSS ini ke resources/css/app.css atau file CSS custom Anda */
+
+/* Custom scrollbar untuk dark mode */
+.dark .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-track {
+    background: #374151; /* gray-700 */
+    border-radius: 4px;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #6B7280; /* gray-500 */
+    border-radius: 4px;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF; /* gray-400 */
+}
+
+/* Pastikan transition smooth untuk tema switching */
+.transition-colors {
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+/* Override untuk Filament modal dark mode jika diperlukan */
+.dark .fi-modal {
+    background-color: rgb(17, 24, 39) !important; /* gray-900 */
+}
+
+.dark .fi-modal-header {
+    background-color: rgb(31, 41, 55) !important; /* gray-800 */
+    border-bottom-color: rgb(75, 85, 99) !important; /* gray-600 */
+}
+
+.dark .fi-modal-content {
+    background-color: rgb(17, 24, 39) !important; /* gray-900 */
+}
+
+/* Badge colors yang lebih kontras untuk dark mode */
+.dark .bg-green-900 {
+    background-color: rgb(20, 83, 45) !important;
+}
+
+.dark .bg-blue-900 {
+    background-color: rgb(30, 58, 138) !important;
+}
+
+.dark .bg-amber-900 {
+    background-color: rgb(120, 53, 15) !important;
+}
