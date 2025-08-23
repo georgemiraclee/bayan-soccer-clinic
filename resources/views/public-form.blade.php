@@ -193,7 +193,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
         <script>
-           async function exportToPDF() {
+          async function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const colors = {
@@ -206,12 +206,14 @@
                 lightOrange: [255, 237, 213], // Light orange
                 lightGray: [156, 163, 175]    // Light gray
             };
+            
             const currentDate = new Date().toLocaleDateString('id-ID', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
+            
             doc.setFontSize(10);
             doc.text(currentDate, 196, 35, { align: "right" });
 
@@ -247,42 +249,68 @@
             doc.text(`Email      : ${sekolahData.email}`, 14, 71);
             doc.text(`Telepon    : ${sekolahData.telepon}`, 14, 79);
 
-            // ====== Daftar Pemain ======
-            doc.setFontSize(13);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(0, 0, 0);
-            doc.text("Daftar Pemain Sementara", 14, 95);
-
-            const tableData = pemainList.map((p, i) => [
-                i + 1,
-                p.nama,
-                p.umur,
-                p.kategori
-            ]);
-
-            doc.autoTable({
-                head: [["No", "Nama Pemain", "Umur", "Kategori"]],
-                body: tableData,
-                startY: 100,
-                theme: "grid",
-                styles: {
-                    halign: "center",
-                    valign: "middle",
-                    fontSize: 11,
-                    font: "helvetica"
-                },
-                headStyles: {
-                    fillColor: [0, 102, 204], // biru
-                    textColor: [255, 255, 255],
-                    fontStyle: "bold"
-                },
-                bodyStyles: {
-                    textColor: [60, 60, 60],
-                },
-                alternateRowStyles: { fillColor: [245, 245, 245] },
+            // ====== Grouping Data Per Kategori ======
+            const groupedData = {};
+            pemainList.forEach(pemain => {
+                if (!groupedData[pemain.kategori]) {
+                    groupedData[pemain.kategori] = [];
+                }
+                groupedData[pemain.kategori].push(pemain);
             });
 
-            // ====== Important Notice ======
+            // ====== Daftar Pemain Per Kategori ======
+            let currentY = 95;
+            
+            Object.keys(groupedData).forEach((kategori, kategoriIndex) => {
+                const pemainKategori = groupedData[kategori];
+                
+                // Judul kategori
+                doc.setFontSize(13);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Kategori ${kategori}`, 14, currentY);
+                
+                // Data tabel untuk kategori ini
+                const tableData = pemainKategori.map((p, i) => [
+                    i + 1,
+                    p.nama,
+                    p.umur
+                ]);
+
+                doc.autoTable({
+                    head: [["No", "Nama Pemain", "Umur"]],
+                    body: tableData,
+                    startY: currentY + 5,
+                    theme: "grid",
+                    styles: {
+                        halign: "center",
+                        valign: "middle",
+                        fontSize: 11,
+                        font: "helvetica"
+                    },
+                    headStyles: {
+                        fillColor: [0, 102, 204], // biru
+                        textColor: [255, 255, 255],
+                        fontStyle: "bold"
+                    },
+                    bodyStyles: {
+                        textColor: [60, 60, 60],
+                    },
+                    alternateRowStyles: { fillColor: [245, 245, 245] },
+                    margin: { left: 14, right: 14 },
+                });
+
+                // Update posisi Y untuk kategori berikutnya
+                currentY = doc.lastAutoTable.finalY + 15;
+                
+                // Cek apakah perlu halaman baru
+                if (currentY > 250 && kategoriIndex < Object.keys(groupedData).length - 1) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+            });
+
+            // ====== Important Notice (tanpa warning icon) ======
             const finalY = doc.lastAutoTable.finalY || 150;
             
             // Background box for notice
@@ -291,20 +319,11 @@
             doc.setLineWidth(1);
             doc.roundedRect(14, finalY + 10, 182, 35, 3, 3, 'FD');
             
-            // Warning icon (triangle)
-            doc.setFillColor(255, 193, 7);
-            doc.triangle(22, finalY + 18, 26, finalY + 25, 18, finalY + 25);
-            doc.setFillColor(255, 248, 220);
-            doc.setTextColor(180, 83, 9);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(10);
-            doc.text("!", 21.5, finalY + 23, { align: "center" });
-            
             // Notice title
             doc.setFont("helvetica", "bold");
             doc.setFontSize(12);
             doc.setTextColor(180, 83, 9); // Dark yellow/orange
-            doc.text("INFORMASI PENTING", 32, finalY + 18);
+            doc.text("INFORMASI PENTING", 20, finalY + 20);
             
             // Notice content
             doc.setFont("helvetica", "normal");
@@ -314,9 +333,9 @@
             const noticeText2 = "diinformasikan melalui link website terpisah dan akan diinformasikan melalui nomor";
             const noticeText3 = "telepon PIC terdaftar.";
             
-            doc.text(noticeText, 18, finalY + 28);
-            doc.text(noticeText2, 18, finalY + 35);
-            doc.text(noticeText3, 18, finalY + 42);
+            doc.text(noticeText, 20, finalY + 30);
+            doc.text(noticeText2, 20, finalY + 37);
+            doc.text(noticeText3, 20, finalY + 44);
 
             // ====== Footer ======
             const pageHeight = doc.internal.pageSize.height;
