@@ -75,7 +75,7 @@ class ViewSekolahBola extends ViewRecord
                                 
                             }),
                             
-                      Forms\Components\Placeholder::make('pemain_table')
+                   Forms\Components\Placeholder::make('pemain_table')
                         ->label('')
                         ->content(function () {
                             $record = $this->getRecord();
@@ -104,7 +104,8 @@ class ViewSekolahBola extends ViewRecord
                             }
                             
                             $tableRows = '';
-                            foreach ($pemainBolas as $index => $pemain) {
+                            $no = 1; // Mulai dari nomor 1
+                            foreach ($pemainBolas as $pemain) {
                                 $umur = $pemain->umur;
                                 $umur_kategori = $pemain->umur_kategori;
                                 $badgeColor = '';
@@ -123,8 +124,6 @@ class ViewSekolahBola extends ViewRecord
                                         $badgeColor = 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
                                         break;
                                 }
-                                
-                                $no = $index + 1;
                                 $nama = e($pemain->nama);
                                 $umurDisplay = $umur . ' tahun';
                                 
@@ -140,6 +139,8 @@ class ViewSekolahBola extends ViewRecord
                                         </td>
                                     </tr>
                                 ";
+                                
+                                $no++; // Increment nomor untuk row berikutnya
                             }
                             
                             return new \Illuminate\Support\HtmlString("
