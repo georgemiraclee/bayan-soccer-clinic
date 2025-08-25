@@ -75,80 +75,96 @@ class ViewSekolahBola extends ViewRecord
                                 
                             }),
                             
-                        Forms\Components\Placeholder::make('pemain_table')
-                            ->label('')
-                            ->content(function () {
-                                $record = $this->getRecord();
-                                $pemainBolas = $record->pemainBolas->sortBy('nama');
+                      Forms\Components\Placeholder::make('pemain_table')
+                        ->label('')
+                        ->content(function () {
+                            $record = $this->getRecord();
+                            
+                            // Urutkan pemain berdasarkan kategori umur dengan urutan khusus
+                            $pemainBolas = $record->pemainBolas->sortBy(function ($pemain) {
+                                // Urutan kategori: 7-8, 9-10, 11-12
+                                $kategoriOrder = [
+                                    '7-8' => 1,
+                                    '9-10' => 2, 
+                                    '11-12' => 3
+                                ];
                                 
-                                if ($pemainBolas->count() === 0) {
-                                    return new \Illuminate\Support\HtmlString("
-                                        <div class='text-center text-gray-500 dark:text-gray-400 py-8'>
-                                            <div class='text-lg'>Belum ada pemain terdaftar</div>
-                                        </div>
-                                    ");
-                                }
+                                $kategoriPriority = $kategoriOrder[$pemain->umur_kategori] ?? 999;
                                 
-                                $tableRows = '';
-                                foreach ($pemainBolas as $index => $pemain) {
-                                    $umur = $pemain->umur;
-                                    $umur_kategori = $pemain->umur_kategori;
-                                    $badgeColor = '';
-                                    
-                                    switch ($umur_kategori) {
-                                        case '7-8':
-                                            $badgeColor = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-                                            break;
-                                        case '9-10':
-                                            $badgeColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-                                            break;
-                                        case '11-12':
-                                            $badgeColor = 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
-                                            break;
-                                        default:
-                                            $badgeColor = 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
-                                            break;
-                                    }
-                                    
-                                    $no = $index + 1;
-                                    $nama = e($pemain->nama);
-                                    $umurDisplay = $umur . ' tahun';
-                                    
-                                    $tableRows .= "
-                                        <tr class='border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors'>
-                                            <td class='px-4 py-3 font-medium text-gray-900 dark:text-gray-100'>{$nama}</td>
-                                            <td class='px-4 py-3 text-center text-gray-900 dark:text-gray-100'>{$umurDisplay}</td>
-                                            <td class='px-4 py-3 text-center'>
-                                                <span class='px-2 py-1 text-xs font-semibold rounded-full {$badgeColor}'>
-                                                    {$umur_kategori} Tahun
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ";
-                                }
-                                
+                                // Gabungkan priority kategori dengan nama untuk sorting
+                                return sprintf('%03d_%s', $kategoriPriority, $pemain->nama);
+                            });
+                            
+                            if ($pemainBolas->count() === 0) {
                                 return new \Illuminate\Support\HtmlString("
-                                    <div class='overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900'>
-                                        <div class='max-h-96 overflow-y-auto'>
-                                            <table class='w-full'>
-                                                <thead class='bg-gray-50 dark:bg-gray-800 sticky top-0'>
-                                                    <tr>
-                                                        <th class='px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>Nama Pemain</th>
-                                                        <th class='px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center'>Umur</th>
-                                                        <th class='px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center'>Kategori</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class='bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-white'>
-                                                    {$tableRows}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <div class='mt-2 text-sm text-gray-500 dark:text-gray-400 text-center'>
-                                        Menampilkan {$pemainBolas->count()} pemain
+                                    <div class='text-center text-gray-500 dark:text-gray-400 py-8'>
+                                        <div class='text-lg'>Belum ada pemain terdaftar</div>
                                     </div>
                                 ");
-                            }),
+                            }
+                            
+                            $tableRows = '';
+                            foreach ($pemainBolas as $index => $pemain) {
+                                $umur = $pemain->umur;
+                                $umur_kategori = $pemain->umur_kategori;
+                                $badgeColor = '';
+                                
+                                switch ($umur_kategori) {
+                                    case '7-8':
+                                        $badgeColor = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+                                        break;
+                                    case '9-10':
+                                        $badgeColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+                                        break;
+                                    case '11-12':
+                                        $badgeColor = 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
+                                        break;
+                                    default:
+                                        $badgeColor = 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+                                        break;
+                                }
+                                
+                                $no = $index + 1;
+                                $nama = e($pemain->nama);
+                                $umurDisplay = $umur . ' tahun';
+                                
+                                $tableRows .= "
+                                    <tr class='border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors'>
+                                        <td class='px-4 py-3 text-center font-medium text-gray-900 dark:text-gray-100'>{$no}</td>
+                                        <td class='px-4 py-3 font-medium text-gray-900 dark:text-gray-100'>{$nama}</td>
+                                        <td class='px-4 py-3 text-center text-gray-900 dark:text-gray-100'>{$umurDisplay}</td>
+                                        <td class='px-4 py-3 text-center'>
+                                            <span class='px-2 py-1 text-xs font-semibold rounded-full {$badgeColor}'>
+                                                {$umur_kategori} Tahun
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ";
+                            }
+                            
+                            return new \Illuminate\Support\HtmlString("
+                                <div class='overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900'>
+                                    <div class='max-h-96 overflow-y-auto'>
+                                        <table class='w-full'>
+                                            <thead class='bg-gray-50 dark:bg-gray-800 sticky top-0'>
+                                                <tr>
+                                                    <th class='px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>No</th>
+                                                    <th class='px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>Nama Pemain</th>
+                                                    <th class='px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>Umur</th>
+                                                    <th class='px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>Kategori</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class='bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700'>
+                                                {$tableRows}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class='mt-2 text-sm text-gray-500 dark:text-gray-400 text-center'>
+                                    Menampilkan {$pemainBolas->count()} pemain (diurutkan berdasarkan kategori: 7-8, 9-10, 11-12 tahun)
+                                </div>
+                            ");
+                        }),
                     ])
                     ->collapsible()
                     ->collapsed(false),
