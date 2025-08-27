@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -52,9 +53,15 @@
             color: white;
         }
         
-        .action-btn:hover {
+        .action-btn:hover:not(.disabled) {
             opacity: 0.8;
             transform: translateY(-1px);
+        }
+
+        .action-btn.disabled {
+            background-color: #9ca3af !important;
+            cursor: not-allowed !important;
+            opacity: 0.5 !important;
         }
 
         .alert-slide-down {
@@ -169,6 +176,28 @@
             }
         }
 
+        /* Critical countdown animation */
+        .countdown-critical {
+            animation: pulse-red 1s infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+            }
+        }
+
+        /* Expired countdown styles */
+        .countdown-expired {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
+            border: 2px solid #ef4444;
+        }
+
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             .navbar-logo {
@@ -242,6 +271,18 @@
             background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
             border: 2px dashed #9ca3af;
         }
+
+        /* Disabled button styles */
+        .btn-disabled {
+            background-color: #9ca3af !important;
+            cursor: not-allowed !important;
+            opacity: 0.6 !important;
+        }
+
+        .btn-disabled:hover {
+            background-color: #9ca3af !important;
+            transform: none !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -279,6 +320,36 @@
         <main class="p-3 md:p-6">
             <!-- Alert Container -->
             <div id="alertContainer"></div>
+
+            <!-- System Status Alert (shown when deadline has passed) -->
+            <div id="systemStatusAlert" class="mb-4 md:mb-6 bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 rounded-lg p-4 md:p-6 alert-slide-down hidden">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-lock text-red-600 text-lg md:text-xl"></i>
+                    </div>
+                    <div class="ml-2 md:ml-3 flex-1">
+                        <h3 class="text-base md:text-lg font-bold text-red-800 mb-2">
+                            <i class="fas fa-exclamation-triangle mr-1 md:mr-2"></i>Sistem Telah Dikunci
+                        </h3>
+                        <div class="text-red-700 mb-4">
+                            <p class="mb-2 text-sm md:text-base">
+                                Batas waktu pendaftaran telah berakhir pada <strong id="systemStatusDeadline">Loading...</strong>
+                            </p>
+                            <p class="mb-4 text-xs md:text-sm">
+                                Semua fitur edit dan hapus telah dinonaktifkan. Data yang tersimpan sekarang bersifat <strong>final dan permanen</strong>.
+                            </p>
+                            <div class="bg-red-100 border border-red-300 rounded-lg p-3 mt-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-info-circle text-red-600 mr-2"></i>
+                                    <div class="text-red-800 text-xs md:text-sm">
+                                        <strong>Catatan:</strong> Jika Anda memerlukan perubahan data setelah batas waktu, silakan hubungi administrator sistem.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Countdown Timer -->
             <div class="countdown-container" id="countdownContainer">
@@ -449,9 +520,6 @@
                                 </svg>
                             </div>
                         </div>
-                        <button onclick="openAddModal()" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition duration-200 text-sm md:text-base">
-                            <i class="fas fa-plus mr-2"></i>Tambah Pemain
-                        </button>
                     </div>
                 </div>
 
@@ -484,10 +552,10 @@
                                     </td>
                                     <td class="p-2 md:p-3 text-center">
                                         <div class="flex justify-center gap-1 md:gap-2">
-                                            <button onclick="editPlayer({{ $pemain->id }})" class="action-btn edit">
+                                            <button onclick="editPlayer({{ $pemain->id }})" class="action-btn edit" data-edit-btn>
                                                 <i class="fas fa-edit mr-1"></i><span class="hidden sm:inline">Edit</span>
                                             </button>
-                                            <button onclick="deletePlayer({{ $pemain->id }}, '{{ $pemain->nama }}')" class="action-btn delete">
+                                            <button onclick="deletePlayer({{ $pemain->id }}, '{{ $pemain->nama }}')" class="action-btn delete" data-delete-btn>
                                                 <i class="fas fa-trash mr-1"></i><span class="hidden sm:inline">Hapus</span>
                                             </button>
                                         </div>
@@ -607,7 +675,7 @@
                                 class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-200">
                             Batal
                         </button>
-                        <button type="submit" id="addPlayerBtn"
+                        <button type="submit" id="addPlayerBtnModal"
                                 class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-200">
                             <span class="loading-text">Tambah Pemain</span>
                             <span class="loading-spinner-container hidden">
@@ -625,41 +693,66 @@
         // Global variables
         let currentEditingPlayerId = null;
         const userToken = '{{ $sekolah->user_token }}';
+        let countdownInterval;
+        let isDeadlinePassed = false;
         
         // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        // Countdown Timer Variables
-        let countdownInterval;
-        const registrationStartDate = new Date(); // Current date as start
-        const registrationEndDate = new Date(registrationStartDate.getTime() + (14 * 24 * 60 * 60 * 1000)); // 14 days from now
+        // Fixed deadline: September 30, 2025 at 23:59:59 (customizable)
+        const REGISTRATION_DEADLINE = new Date('2025-10-15T23:59:59+08:00'); // UTC+7 for Indonesia
         
         // Check if quota is available from server-side data
         const hasQuota = @json($kuotaData['has_quota']);
 
+        // ===== IMPROVED COUNTDOWN SYSTEM =====
+        
         // Initialize countdown based on quota status
         function initCountdown() {
             const countdownContent = document.getElementById('countdownContent');
             
             if (!hasQuota) {
                 // Show waiting message when no quota is set
-                document.getElementById('countdownContainer').classList.add('countdown-waiting');
-                countdownContent.innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-hourglass-half text-4xl md:text-6xl mb-4 opacity-50"></i>
-                        <h3 class="text-lg md:text-2xl font-bold mb-2">Menunggu Kuota dari Admin</h3>
-                        <p class="text-sm md:text-lg opacity-90">Countdown akan dimulai setelah admin menetapkan kuota SSB</p>
-                        <p class="text-xs md:text-sm opacity-75 mt-2">Hubungi admin untuk informasi lebih lanjut</p>
-                        <div class="mt-4">
-                            <button onclick="refreshQuota()" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
-                                <i class="fas fa-refresh mr-2"></i>Refresh Status
-                            </button>
-                        </div>
-                    </div>
-                `;
+                showWaitingForQuota();
                 return;
             }
 
+            // Check if deadline has already passed
+            const now = new Date();
+            if (now > REGISTRATION_DEADLINE) {
+                handleExpiredDeadline();
+                return;
+            }
+            
+            // Setup active countdown
+            setupActiveCountdown();
+            
+            // Start countdown timer
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        function showWaitingForQuota() {
+            const countdownContent = document.getElementById('countdownContent');
+            document.getElementById('countdownContainer').classList.add('countdown-waiting');
+            countdownContent.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-hourglass-half text-4xl md:text-6xl mb-4 opacity-50"></i>
+                    <h3 class="text-lg md:text-2xl font-bold mb-2">Menunggu Kuota dari Admin</h3>
+                    <p class="text-sm md:text-lg opacity-90">Countdown akan dimulai setelah admin menetapkan kuota SSB</p>
+                    <p class="text-xs md:text-sm opacity-75 mt-2">Hubungi admin untuk informasi lebih lanjut</p>
+                    <div class="mt-4">
+                        <button onclick="refreshQuota()" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
+                            <i class="fas fa-refresh mr-2"></i>Refresh Status
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupActiveCountdown() {
+            const countdownContent = document.getElementById('countdownContent');
+            
             // Show active countdown when quota is available
             document.getElementById('countdownContainer').classList.remove('countdown-waiting');
             countdownContent.innerHTML = `
@@ -669,10 +762,14 @@
                             <i class="fas fa-clock mr-2"></i>
                             Waktu Pendaftaran Tersisa
                         </h3>
-                        <p class="text-xs md:text-sm opacity-90">Batas waktu pendaftaran pemain SSB</p>
+                        <p class="text-xs md:text-sm opacity-90">Sistem akan dikunci setelah batas waktu berakhir</p>
                     </div>
                     <div class="text-left md:text-right">
-                        <p class="text-xs opacity-75" id="endDate">Berakhir: Loading...</p>
+                        <p class="text-xs opacity-75" id="endDate">Berakhir: ${formatDeadlineDate()}</p>
+                        <p class="text-xs opacity-60 mt-1">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            Fitur edit/hapus akan dinonaktifkan
+                        </p>
                     </div>
                 </div>
                 
@@ -705,21 +802,29 @@
                         <div class="bg-white h-2 rounded-full transition-all duration-1000" id="progressBar" style="width: 0%"></div>
                     </div>
                 </div>
-            `;
 
-            // Display end date
-            document.getElementById('endDate').textContent = `Berakhir: ${registrationEndDate.toLocaleDateString('id-ID', {
+                <!-- Countdown Status Info -->
+                <div class="mt-4 bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="opacity-90">
+                            <i class="fas fa-info-circle mr-2"></i>Status Sistem
+                        </span>
+                        <span class="font-medium" id="countdownStatus">Aktif</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatDeadlineDate() {
+            return REGISTRATION_DEADLINE.toLocaleDateString('id-ID', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
                 hour: '2-digit',
-                minute: '2-digit'
-            })}`;
-
-            // Start countdown timer
-            updateCountdown();
-            countdownInterval = setInterval(updateCountdown, 1000);
+                minute: '2-digit',
+                timeZoneName: 'short'
+            });
         }
 
         // Update countdown display
@@ -727,34 +832,12 @@
             // Only run if quota is available
             if (!hasQuota) return;
             
-            const now = new Date().getTime();
-            const endTime = registrationEndDate.getTime();
-            const startTime = registrationStartDate.getTime();
-            const totalDuration = endTime - startTime;
-            const timeLeft = endTime - now;
+            const now = new Date();
+            const timeLeft = REGISTRATION_DEADLINE.getTime() - now.getTime();
 
+            // Check if deadline has passed
             if (timeLeft <= 0) {
-                // Time's up
-                document.getElementById('days').textContent = '00';
-                document.getElementById('hours').textContent = '00';
-                document.getElementById('minutes').textContent = '00';
-                document.getElementById('seconds').textContent = '00';
-                document.getElementById('progressPercent').textContent = '100%';
-                document.getElementById('progressBar').style.width = '100%';
-                
-                // Add expired styling
-                const countdownContainer = document.getElementById('countdownContainer');
-                countdownContainer.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
-                document.getElementById('countdownContent').innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-clock text-4xl md:text-6xl mb-4 opacity-50"></i>
-                        <h3 class="text-lg md:text-2xl font-bold mb-2">Waktu Pendaftaran Berakhir</h3>
-                        <p class="text-sm md:text-lg opacity-90">Periode pendaftaran pemain SSB telah berakhir</p>
-                        <p class="text-xs md:text-sm opacity-75 mt-2">Hubungi admin untuk informasi lebih lanjut</p>
-                    </div>
-                `;
-                
-                clearInterval(countdownInterval);
+                handleExpiredDeadline();
                 return;
             }
 
@@ -765,25 +848,149 @@
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
             // Update display
-            document.getElementById('days').textContent = days.toString().padStart(2, '0');
-            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            const daysElement = document.getElementById('days');
+            const hoursElement = document.getElementById('hours');
+            const minutesElement = document.getElementById('minutes');
+            const secondsElement = document.getElementById('seconds');
 
-            // Update progress bar
-            const elapsed = now - startTime;
-            const progressPercent = Math.min((elapsed / totalDuration) * 100, 100);
-            document.getElementById('progressPercent').textContent = `${Math.round(progressPercent)}%`;
-            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+            if (daysElement) daysElement.textContent = days.toString().padStart(2, '0');
+            if (hoursElement) hoursElement.textContent = hours.toString().padStart(2, '0');
+            if (minutesElement) minutesElement.textContent = minutes.toString().padStart(2, '0');
+            if (secondsElement) secondsElement.textContent = seconds.toString().padStart(2, '0');
 
-            // Add urgent styling when less than 3 days left
+            // Update progress bar (assuming start date is 1 month ago for demo)
+            const startDate = new Date(REGISTRATION_DEADLINE.getTime() - (30 * 24 * 60 * 60 * 1000));
+            const totalDuration = REGISTRATION_DEADLINE.getTime() - startDate.getTime();
+            const elapsed = now.getTime() - startDate.getTime();
+            const progressPercent = Math.max(0, Math.min((elapsed / totalDuration) * 100, 100));
+            
+            const progressPercentElement = document.getElementById('progressPercent');
+            const progressBarElement = document.getElementById('progressBar');
+            
+            if (progressPercentElement) progressPercentElement.textContent = `${Math.round(progressPercent)}%`;
+            if (progressBarElement) progressBarElement.style.width = `${progressPercent}%`;
+
+            // Update countdown styling based on time left
+            updateCountdownStyling(days, hours, minutes);
+            
+            // Update status
+            const statusElement = document.getElementById('countdownStatus');
+            if (statusElement) {
+                if (days <= 1) {
+                    statusElement.textContent = 'Kritis!';
+                    statusElement.className = 'font-bold text-red-200';
+                } else if (days <= 7) {
+                    statusElement.textContent = 'Mendesak';
+                    statusElement.className = 'font-medium text-yellow-200';
+                } else {
+                    statusElement.textContent = 'Aktif';
+                    statusElement.className = 'font-medium';
+                }
+            }
+        }
+
+        function updateCountdownStyling(days, hours, minutes) {
             const countdownContainer = document.getElementById('countdownContainer');
-            if (days <= 3) {
-                countdownContainer.classList.add('countdown-urgent');
+            
+            // Remove existing classes
+            countdownContainer.classList.remove('countdown-urgent', 'countdown-critical');
+            
+            if (days === 0 && hours <= 1) {
+                // Last hour - critical
+                countdownContainer.classList.add('countdown-critical');
                 countdownContainer.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+            } else if (days <= 1) {
+                // Last day - urgent
+                countdownContainer.classList.add('countdown-urgent');
+                countdownContainer.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
             } else if (days <= 7) {
+                // Last week - warning
+                countdownContainer.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+            } else {
+                // Normal state
                 countdownContainer.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
             }
+        }
+
+        function handleExpiredDeadline() {
+            isDeadlinePassed = true;
+            
+            // Stop countdown timer
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            // Update countdown display
+            const countdownContainer = document.getElementById('countdownContainer');
+            const countdownContent = document.getElementById('countdownContent');
+            
+            countdownContainer.classList.add('countdown-expired');
+            countdownContent.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-lock text-4xl md:text-6xl mb-4 opacity-60"></i>
+                    <h3 class="text-lg md:text-2xl font-bold mb-2">Sistem Telah Dikunci</h3>
+                    <p class="text-sm md:text-lg opacity-90 mb-2">
+                        Batas waktu pendaftaran berakhir pada
+                    </p>
+                    <p class="text-xs md:text-sm font-mono bg-black bg-opacity-20 rounded-lg px-3 py-2 mb-4">
+                        ${formatDeadlineDate()}
+                    </p>
+                    <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                        <p class="text-xs md:text-sm opacity-75">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Semua data sekarang bersifat <strong>final dan permanen</strong>
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            // Show system status alert
+            const systemStatusAlert = document.getElementById('systemStatusAlert');
+            const systemStatusDeadline = document.getElementById('systemStatusDeadline');
+            if (systemStatusAlert && systemStatusDeadline) {
+                systemStatusDeadline.textContent = formatDeadlineDate();
+                systemStatusAlert.classList.remove('hidden');
+            }
+            
+            // Disable all edit/delete functionality
+            disableEditDeleteFeatures();
+        }
+
+        function disableEditDeleteFeatures() {
+            // Disable add button
+            const addPlayerBtns = document.querySelectorAll('button[onclick="openAddModal()"]');
+            addPlayerBtns.forEach(btn => {
+                btn.classList.add('btn-disabled');
+                btn.disabled = true;
+                btn.onclick = function() {
+                    showAlert('Fitur ini telah dinonaktifkan setelah batas waktu berakhir', 'error');
+                };
+                btn.innerHTML = '<i class="fas fa-lock mr-2"></i>Sistem Dikunci';
+            });
+            
+            // Disable all edit/delete buttons
+            const editButtons = document.querySelectorAll('[data-edit-btn]');
+            const deleteButtons = document.querySelectorAll('[data-delete-btn]');
+            
+            editButtons.forEach(btn => {
+                btn.classList.add('action-btn', 'disabled');
+                btn.disabled = true;
+                const originalOnclick = btn.onclick;
+                btn.onclick = function() {
+                    showAlert('Fitur edit telah dinonaktifkan setelah batas waktu berakhir', 'error');
+                };
+                btn.title = 'Fitur dikunci setelah deadline';
+            });
+            
+            deleteButtons.forEach(btn => {
+                btn.classList.add('action-btn', 'disabled');
+                btn.disabled = true;
+                const originalOnclick = btn.onclick;
+                btn.onclick = function() {
+                    showAlert('Fitur hapus telah dinonaktifkan setelah batas waktu berakhir', 'error');
+                };
+                btn.title = 'Fitur dikunci setelah deadline';
+            });
         }
 
         // Show alert function
@@ -817,29 +1024,36 @@
 
         // Auto-detect kategori umur berdasarkan umur
         function setupUmurAutoDetect(umurInputId, radioName) {
-            document.getElementById(umurInputId).addEventListener('input', function() {
-                const umur = parseInt(this.value);
-                const radioButtons = document.querySelectorAll(`input[name="${radioName}"]`);
-                
-                // Reset all radio buttons
-                radioButtons.forEach(radio => radio.checked = false);
-                
-                // Auto select kategori berdasarkan umur
-                if (umur >= 7 && umur <= 8) {
-                    const radio7_8 = document.querySelector(`input[name="${radioName}"][value="7-8"]`);
-                    if (radio7_8) radio7_8.checked = true;
-                } else if (umur >= 9 && umur <= 10) {
-                    const radio9_10 = document.querySelector(`input[name="${radioName}"][value="9-10"]`);
-                    if (radio9_10) radio9_10.checked = true;
-                } else if (umur >= 11 && umur <= 12) {
-                    const radio11_12 = document.querySelector(`input[name="${radioName}"][value="11-12"]`);
-                    if (radio11_12) radio11_12.checked = true;
-                }
-            });
+            const umurInput = document.getElementById(umurInputId);
+            if (umurInput) {
+                umurInput.addEventListener('input', function() {
+                    const umur = parseInt(this.value);
+                    const radioButtons = document.querySelectorAll(`input[name="${radioName}"]`);
+                    
+                    // Reset all radio buttons
+                    radioButtons.forEach(radio => radio.checked = false);
+                    
+                    // Auto select kategori berdasarkan umur
+                    if (umur >= 7 && umur <= 8) {
+                        const radio7_8 = document.querySelector(`input[name="${radioName}"][value="7-8"]`);
+                        if (radio7_8) radio7_8.checked = true;
+                    } else if (umur >= 9 && umur <= 10) {
+                        const radio9_10 = document.querySelector(`input[name="${radioName}"][value="9-10"]`);
+                        if (radio9_10) radio9_10.checked = true;
+                    } else if (umur >= 11 && umur <= 12) {
+                        const radio11_12 = document.querySelector(`input[name="${radioName}"][value="11-12"]`);
+                        if (radio11_12) radio11_12.checked = true;
+                    }
+                });
+            }
         }
 
         // Open add modal
         function openAddModal() {
+            if (isDeadlinePassed) {
+                showAlert('Tidak dapat menambah pemain setelah batas waktu berakhir', 'error');
+                return;
+            }
             document.getElementById('addPlayerModal').classList.remove('hidden');
             document.getElementById('add_nama').focus();
         }
@@ -852,6 +1066,11 @@
 
         // Open edit modal
         async function editPlayer(playerId) {
+            if (isDeadlinePassed) {
+                showAlert('Tidak dapat mengedit pemain setelah batas waktu berakhir', 'error');
+                return;
+            }
+            
             currentEditingPlayerId = playerId;
             
             try {
@@ -899,6 +1118,11 @@
 
         // Delete player
         async function deletePlayer(playerId, playerName) {
+            if (isDeadlinePassed) {
+                showAlert('Tidak dapat menghapus pemain setelah batas waktu berakhir', 'error');
+                return;
+            }
+            
             if (confirm(`Yakin ingin menghapus pemain "${playerName}"?\n\nData yang sudah dihapus tidak dapat dikembalikan.`)) {
                 try {
                     const response = await fetch(`/user/${userToken}/hapus-pemain/${playerId}`, {
@@ -936,7 +1160,12 @@
         document.getElementById('addPlayerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const submitBtn = document.getElementById('addPlayerBtn');
+            if (isDeadlinePassed) {
+                showAlert('Tidak dapat menambah pemain setelah batas waktu berakhir', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('addPlayerBtnModal');
             const loadingText = submitBtn.querySelector('.loading-text');
             const loadingSpinner = submitBtn.querySelector('.loading-spinner-container');
             
@@ -1078,7 +1307,6 @@
             }
         });
 
-        // Search functionality
         document.getElementById('searchInput').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const rows = document.querySelectorAll('#playerTable tr');
@@ -1141,10 +1369,39 @@
             }
         });
 
+        // ===== INITIALIZATION AND MONITORING =====
+        
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initCountdown();
+            
+            // Check deadline status every minute to handle edge cases
+            setInterval(() => {
+                const now = new Date();
+                if (now > REGISTRATION_DEADLINE && !isDeadlinePassed) {
+                    handleExpiredDeadline();
+                }
+            }, 60000); // Check every minute
         });
+
+        // Handle page visibility change (when user switches tabs)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Page became visible, check if deadline passed while away
+                const now = new Date();
+                if (now > REGISTRATION_DEADLINE && !isDeadlinePassed) {
+                    handleExpiredDeadline();
+                }
+            }
+        });
+
+        // Periodic sync check (every 5 minutes)
+        setInterval(() => {
+            const now = new Date();
+            if (now > REGISTRATION_DEADLINE && !isDeadlinePassed) {
+                handleExpiredDeadline();
+            }
+        }, 300000); // Check every 5 minutes
     </script>
 </body>
 </html>
