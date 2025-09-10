@@ -18,6 +18,12 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
+     'wablas' => [
+        'url' => env('WABLAS_API_URL', 'https://sby.wablas.com/api/send-message'),
+        'token' => env('WABLAS_TOKEN', ''),
+        'image_url' => env('WABLAS_IMAGE_URL', 'https://sby.wablas.com/api/send-image'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_KEY'),
     ],
