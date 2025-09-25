@@ -519,6 +519,10 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
                             </div>
+                            <!-- Tambah Pemain Button -->
+                            <button type="button" onclick="openAddModal()" class="ml-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-200 flex items-center" id="addPlayerBtn">
+                                <i class="fas fa-plus mr-2"></i>Tambah Pemain
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -657,18 +661,33 @@
                         <input type="text" id="add_nama" name="nama" required 
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                     </div>
+                    <div class="mb-4">
+                        <label for="add_umur" class="block text-sm font-medium text-gray-700 mb-2">Umur (tahun)</label>
+                        <input type="number" id="add_umur" name="umur" required min="7" max="12"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
                     <div class="mb-6">
-                        <label for="add_umur" class="block text-sm font-medium text-gray-700 mb-2">Umur</label>
-                        <select id="add_umur" name="umur" required 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <option value="">Pilih Umur</option>
-                            <option value="7">7 tahun</option>
-                            <option value="8">8 tahun</option>
-                            <option value="9">9 tahun</option>
-                            <option value="10">10 tahun</option>
-                            <option value="11">11 tahun</option>
-                            <option value="12">12 tahun</option>
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Umur</label>
+                        <div class="flex flex-wrap gap-2">
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="add_umur_kategori" value="7-8" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    7-8 Tahun
+                                </span>
+                            </label>
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="add_umur_kategori" value="9-10" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    9-10 Tahun
+                                </span>
+                            </label>
+                            <label class="flex-1 flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="add_umur_kategori" value="11-12" class="hidden peer" required>
+                                <span class="w-full text-center text-xs px-2 py-2 border-2 border-gray-300 rounded-lg peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 transition duration-300">
+                                    11-12 Tahun
+                                </span>
+                            </label>
+                        </div>
                     </div>
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="closeAddModal()" 
@@ -1056,6 +1075,8 @@
             }
             document.getElementById('addPlayerModal').classList.remove('hidden');
             document.getElementById('add_nama').focus();
+            // Setup auto-detect kategori umur untuk tambah pemain
+            setupUmurAutoDetect('add_umur', 'add_umur_kategori');
         }
 
         // Close add modal
@@ -1177,20 +1198,12 @@
             // Get form data
             const nama = document.getElementById('add_nama').value;
             const umur = document.getElementById('add_umur').value;
-            
-            // Validasi kategori umur sesuai dengan umur
-            const umurInt = parseInt(umur);
-            let kategori = '';
-            if (umurInt >= 7 && umurInt <= 8) {
-                kategori = '7-8';
-            } else if (umurInt >= 9 && umurInt <= 10) {
-                kategori = '9-10';
-            } else if (umurInt >= 11 && umurInt <= 12) {
-                kategori = '11-12';
-            }
+            // Ambil kategori dari radio button
+            const kategoriRadio = document.querySelector('input[name="add_umur_kategori"]:checked');
+            const kategori = kategoriRadio ? kategoriRadio.value : '';
             
             if (!kategori) {
-                showAlert('Umur tidak valid! Harus antara 7-12 tahun', 'error');
+                showAlert('Pilih kategori umur yang sesuai!', 'error');
                 loadingText.classList.remove('hidden');
                 loadingSpinner.classList.add('hidden');
                 submitBtn.disabled = false;
@@ -1200,6 +1213,7 @@
             const formData = new FormData();
             formData.append('nama', nama);
             formData.append('umur', umur);
+            formData.append('umur_kategori', kategori);
             
             try {
                 const response = await fetch(`/user/${userToken}/tambah-pemain`, {
