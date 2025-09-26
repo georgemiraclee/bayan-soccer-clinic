@@ -6,7 +6,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\UserSekolahController;
 
 // Route untuk form pendaftaran publik
-Route::get('/', [PublicFormController::class, 'index'])->name('public.form.index');
+Route::get('/', [PublicFormController::class, 'index'])->name('welcome');
 Route::post('/daftar', [PublicFormController::class, 'store'])->name('public.form.store');
 
 // Route untuk redirect ke admin setelah pendaftaran
