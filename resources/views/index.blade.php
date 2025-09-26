@@ -251,7 +251,7 @@
 </head>
 <body>
     <video class="video-background" autoplay muted loop>
-        <source src="https://res.cloudinary.com/dgcedsrzf/video/upload/v1758859505/dji_fly_20241027_081323_0_1730259840479_video_cache_nycykv.mov" type="video/mp4">
+        <source src="https://res.cloudinary.com/dgcedsrzf/video/upload/v1758861275/dji_fly_20241027_081323_0_1730259840479_video_cache_ig3omc.mp4" type="video/mp4">
         <!-- Fallback for browsers that don't support the video format -->
     </video>
     
