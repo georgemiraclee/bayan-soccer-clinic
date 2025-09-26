@@ -465,7 +465,7 @@
                             
                             <p class="mt-3 text-xs md:text-sm">
                                 <i class="fas fa-users-cog mr-1"></i>
-                                Silakan Anda memanajemen pemain SSB Anda dengan bijak sesuai kategori umur yang tersedia.
+                                Silakan Anda mengatur pemain SSB Anda sesuai kategori umur yang tersedia.
                             </p>
                         </div>
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -719,10 +719,100 @@
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         // Fixed deadline: September 30, 2025 at 23:59:59 (customizable)
-        const REGISTRATION_DEADLINE = new Date('2025-10-15T23:59:59+08:00'); // UTC+7 for Indonesia
+        const REGISTRATION_DEADLINE = new Date('2025-10-20T23:59:59+08:00'); // UTC+7 for Indonesia
         
         // Check if quota is available from server-side data
         const hasQuota = @json($kuotaData['has_quota']);
+        const quotaData = @json($kuotaData);
+
+        function checkAddingAllowed() {
+            // If deadline has passed, disable completely
+            if (isDeadlinePassed) {
+                return {
+                    allowed: false,
+                    reason: 'Batas waktu pendaftaran telah berakhir'
+                };
+            }
+
+            // If no quota is set, disable
+            if (!quotaData.has_quota) {
+                return {
+                    allowed: false,
+                    reason: 'Kuota belum ditetapkan oleh admin'
+                };
+            }
+              // Check if total quota is already full
+            const totalCurrent = quotaData.current_counts.total;
+            const totalQuota = quotaData.total;
+            
+            if (totalCurrent >= totalQuota) {
+                return {
+                    allowed: false,
+                    reason: 'Kuota total SSB sudah terpenuhi'
+                };
+            }
+               return {
+                        allowed: true,
+                        reason: ''
+                    };
+                }
+                // Function to update add button state
+            function updateAddButtonState() {
+                const addPlayerBtn = document.getElementById('addPlayerBtn');
+                const checkResult = checkAddingAllowed();
+                
+                if (!checkResult.allowed) {
+                    // Disable button
+                    addPlayerBtn.classList.add('btn-disabled');
+                    addPlayerBtn.disabled = true;
+                    addPlayerBtn.onclick = function() {
+                        showAlert(checkResult.reason, 'error');
+                    };
+                    
+                    // Update button text based on reason
+                    if (checkResult.reason.includes('berakhir')) {
+                        addPlayerBtn.innerHTML = '<i class="fas fa-lock mr-2"></i>Sistem Dikunci';
+                    } else if (checkResult.reason.includes('belum ditetapkan')) {
+                        addPlayerBtn.innerHTML = '<i class="fas fa-hourglass-half mr-2"></i>Menunggu Kuota';
+                    } else if (checkResult.reason.includes('terpenuhi')) {
+                        addPlayerBtn.innerHTML = '<i class="fas fa-users-slash mr-2"></i>Kuota Penuh';
+                    }
+                    
+                    // Add tooltip
+                    addPlayerBtn.title = checkResult.reason;
+                } else {
+                    // Enable button
+                    addPlayerBtn.classList.remove('btn-disabled');
+                    addPlayerBtn.disabled = false;
+                    addPlayerBtn.onclick = function() { openAddModal(); };
+                    addPlayerBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Tambah Pemain';
+                    addPlayerBtn.title = 'Tambah pemain baru';
+                }
+            }
+            // Enhanced quota validation in add modal
+                function validateQuotaInModal(kategori) {
+                    if (!quotaData.has_quota) {
+                        return {
+                            valid: false,
+                            message: 'Kuota belum ditetapkan oleh admin'
+                        };
+                    }
+
+                    const currentCount = quotaData.current_counts[kategori];
+                    const quotaLimit = quotaData[kategori];
+                    
+                    if (currentCount >= quotaLimit) {
+                        return {
+                            valid: false,
+                            message: `Kuota kategori ${kategori} tahun sudah penuh (${currentCount}/${quotaLimit})`
+                        };
+                    }
+
+                    return {
+                        valid: true,
+                        message: `Sisa kuota kategori ${kategori}: ${quotaLimit - currentCount} pemain`
+                    };
+                }
 
         // ===== IMPROVED COUNTDOWN SYSTEM =====
         
@@ -1041,8 +1131,8 @@
             }, 5000);
         }
 
-        // Auto-detect kategori umur berdasarkan umur
-        function setupUmurAutoDetect(umurInputId, radioName) {
+      // Enhanced umur auto-detect with quota validation
+        function setupUmurAutoDetectWithQuota(umurInputId, radioName) {
             const umurInput = document.getElementById(umurInputId);
             if (umurInput) {
                 umurInput.addEventListener('input', function() {
@@ -1053,32 +1143,132 @@
                     radioButtons.forEach(radio => radio.checked = false);
                     
                     // Auto select kategori berdasarkan umur
+                    let selectedKategori = '';
                     if (umur >= 7 && umur <= 8) {
-                        const radio7_8 = document.querySelector(`input[name="${radioName}"][value="7-8"]`);
-                        if (radio7_8) radio7_8.checked = true;
+                        selectedKategori = '7-8';
                     } else if (umur >= 9 && umur <= 10) {
-                        const radio9_10 = document.querySelector(`input[name="${radioName}"][value="9-10"]`);
-                        if (radio9_10) radio9_10.checked = true;
+                        selectedKategori = '9-10';
                     } else if (umur >= 11 && umur <= 12) {
-                        const radio11_12 = document.querySelector(`input[name="${radioName}"][value="11-12"]`);
-                        if (radio11_12) radio11_12.checked = true;
+                        selectedKategori = '11-12';
                     }
+                    
+                    if (selectedKategori) {
+                        const targetRadio = document.querySelector(`input[name="${radioName}"][value="${selectedKategori}"]`);
+                        if (targetRadio) {
+                            targetRadio.checked = true;
+                            
+                            // Validate quota for selected kategori
+                            const validation = validateQuotaInModal(selectedKategori);
+                            updateModalQuotaWarning(selectedKategori, validation);
+                        }
+                    }
+                    
+                    updateModalQuotaInfo();
                 });
             }
         }
 
         // Open add modal
-        function openAddModal() {
-            if (isDeadlinePassed) {
-                showAlert('Tidak dapat menambah pemain setelah batas waktu berakhir', 'error');
-                return;
+       function openAddModal() {
+                const checkResult = checkAddingAllowed();
+                
+                if (!checkResult.allowed) {
+                    showAlert(checkResult.reason, 'error');
+                    return;
+                }
+                
+                document.getElementById('addPlayerModal').classList.remove('hidden');
+                document.getElementById('add_nama').focus();
+                
+                // Setup auto-detect and quota validation
+                setupUmurAutoDetectWithQuota('add_umur', 'add_umur_kategori');
+                updateModalQuotaInfo();
             }
-            document.getElementById('addPlayerModal').classList.remove('hidden');
-            document.getElementById('add_nama').focus();
-            // Setup auto-detect kategori umur untuk tambah pemain
-            setupUmurAutoDetect('add_umur', 'add_umur_kategori');
-        }
 
+            // Update modal with quota information
+            function updateModalQuotaInfo() {
+                // Remove existing quota info if any
+                const existingInfo = document.querySelector('#quota-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
+                // Add quota information to modal
+                const formContainer = document.querySelector('#addPlayerForm .mb-6');
+                const quotaInfoHTML = `
+                    <div id="quota-info" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h4 class="text-sm font-semibold text-blue-800 mb-2">
+                            <i class="fas fa-info-circle mr-2"></i>Informasi Kuota Tersedia
+                        </h4>
+                        <div class="grid grid-cols-3 gap-2 text-xs">
+                            <div class="text-center p-2 bg-white rounded border ${quotaData.remaining['7-8'] <= 0 ? 'opacity-50' : ''}">
+                                <div class="font-medium">7-8 Tahun</div>
+                                <div class="text-blue-600">${quotaData.remaining['7-8']} sisa</div>
+                                <div class="text-gray-500">${quotaData.current_counts['7-8']}/${quotaData['7-8']}</div>
+                            </div>
+                            <div class="text-center p-2 bg-white rounded border ${quotaData.remaining['9-10'] <= 0 ? 'opacity-50' : ''}">
+                                <div class="font-medium">9-10 Tahun</div>
+                                <div class="text-blue-600">${quotaData.remaining['9-10']} sisa</div>
+                                <div class="text-gray-500">${quotaData.current_counts['9-10']}/${quotaData['9-10']}</div>
+                            </div>
+                            <div class="text-center p-2 bg-white rounded border ${quotaData.remaining['11-12'] <= 0 ? 'opacity-50' : ''}">
+                                <div class="font-medium">11-12 Tahun</div>
+                                <div class="text-blue-600">${quotaData.remaining['11-12']} sisa</div>
+                                <div class="text-gray-500">${quotaData.current_counts['11-12']}/${quotaData['11-12']}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                formContainer.insertAdjacentHTML('afterend', quotaInfoHTML);
+            }
+
+            // Update modal quota warning
+            function updateModalQuotaWarning(kategori, validation) {
+                // Remove existing warning
+                const existingWarning = document.querySelector('#quota-warning');
+                if (existingWarning) {
+                    existingWarning.remove();
+                }
+                
+            const submitButton = document.getElementById('addPlayerBtnModal');
+            
+            if (!validation.valid) {
+                // Add warning and disable submit
+                const warningHTML = `
+                    <div id="quota-warning" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                            <span class="text-red-800 text-sm">${validation.message}</span>
+                        </div>
+                    </div>
+                `;
+                
+                const formActions = document.querySelector('#addPlayerForm .flex.justify-end');
+                formActions.insertAdjacentHTML('beforebegin', warningHTML);
+                
+                // Disable submit button
+                submitButton.classList.add('btn-disabled');
+                submitButton.disabled = true;
+            } else {
+                // Show success message and enable submit
+                const successHTML = `
+                    <div id="quota-warning" class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <span class="text-green-800 text-sm">${validation.message}</span>
+                        </div>
+                    </div>
+                `;
+                
+                const formActions = document.querySelector('#addPlayerForm .flex.justify-end');
+                formActions.insertAdjacentHTML('beforebegin', successHTML);
+                
+                // Enable submit button
+                submitButton.classList.remove('btn-disabled');
+                submitButton.disabled = false;
+            }
+        }
         // Close add modal
         function closeAddModal() {
             document.getElementById('addPlayerModal').classList.add('hidden');
@@ -1120,7 +1310,7 @@
                     document.getElementById('edit_nama').focus();
                     
                     // Setup auto-detect untuk edit modal
-                    setupUmurAutoDetect('edit_umur', 'edit_umur_kategori');
+                    setupUmurAutoDetectWithQuota('edit_umur', 'edit_umur_kategori');
                 } else {
                     showAlert('Gagal mengambil data pemain', 'error');
                 }
@@ -1177,12 +1367,30 @@
             }
         }
 
-        // Handle add player form submission
+            // Enhanced form submission with quota validation
         document.getElementById('addPlayerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             if (isDeadlinePassed) {
                 showAlert('Tidak dapat menambah pemain setelah batas waktu berakhir', 'error');
+                return;
+            }
+            
+            // Get form data
+            const nama = document.getElementById('add_nama').value;
+            const umur = document.getElementById('add_umur').value;
+            const kategoriRadio = document.querySelector('input[name="add_umur_kategori"]:checked');
+            const kategori = kategoriRadio ? kategoriRadio.value : '';
+            
+            if (!kategori) {
+                showAlert('Pilih kategori umur yang sesuai!', 'error');
+                return;
+            }
+            
+            // Final quota validation before submission
+            const validation = validateQuotaInModal(kategori);
+            if (!validation.valid) {
+                showAlert(validation.message, 'error');
                 return;
             }
             
@@ -1194,21 +1402,6 @@
             loadingText.classList.add('hidden');
             loadingSpinner.classList.remove('hidden');
             submitBtn.disabled = true;
-            
-            // Get form data
-            const nama = document.getElementById('add_nama').value;
-            const umur = document.getElementById('add_umur').value;
-            // Ambil kategori dari radio button
-            const kategoriRadio = document.querySelector('input[name="add_umur_kategori"]:checked');
-            const kategori = kategoriRadio ? kategoriRadio.value : '';
-            
-            if (!kategori) {
-                showAlert('Pilih kategori umur yang sesuai!', 'error');
-                loadingText.classList.remove('hidden');
-                loadingSpinner.classList.add('hidden');
-                submitBtn.disabled = false;
-                return;
-            }
             
             const formData = new FormData();
             formData.append('nama', nama);
@@ -1397,6 +1590,15 @@
                 }
             }, 60000); // Check every minute
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update button state on page load
+            updateAddButtonState();
+            
+            // Monitor quota changes (if implementing real-time updates)
+            setInterval(updateAddButtonState, 30000); // Check every 30 seconds
+        });
+
 
         // Handle page visibility change (when user switches tabs)
         document.addEventListener('visibilitychange', function() {
