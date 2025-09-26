@@ -6,6 +6,10 @@ use App\Filament\Resources\SekolahBolaResource\Pages;
 use App\Filament\Resources\SekolahBolaResource\RelationManagers\PemainBolasRelationManager;
 use App\Models\SekolahBola;
 use App\Models\KuotaSekolah;
+use App\Services\WablasService;
+use App\Helpers\WhatsAppTemplates;
+use Filament\Tables\Actions\BulkAction;
+use Illuminate\Database\Eloquent\Collection;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -129,6 +133,7 @@ class SekolahBolaResource extends Resource
                         default => 'gray'
                     })
                     ->alignCenter(),
+
                     
                 Tables\Columns\TextColumn::make('user_link')
                     ->label('User Link')
@@ -168,6 +173,80 @@ class SekolahBolaResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('send_whatsapp')
+                    ->label('Kirim WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Kirim Pesan WhatsApp')
+                    ->modalDescription('Kirim link pendaftaran ke SSB via WhatsApp')
+                    ->modalSubmitActionLabel('Kirim Sekarang')
+                    ->action(function ($record) {
+                        $wablasService = app(WablasService::class);
+                        $userLink = url("/user/{$record->user_token}");
+                        
+                        $message = WhatsAppTemplates::ssbRegistrationLink(
+                            $record->nama,
+                            $userLink,
+                            $record->pic
+                        );
+
+                        $result = $wablasService->sendMessage($record->telepon, $message);
+
+                        if ($result['success']) {
+                            Notification::make()
+                                ->title('WhatsApp berhasil dikirim!')
+                                ->body("Pesan telah dikirim ke {$record->nama}")
+                                ->success()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title('Gagal mengirim WhatsApp')
+                                ->body('Error: ' . ($result['error'] ?? 'Unknown error'))
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+                    Tables\Actions\Action::make('send_quota_reminder')
+                        ->label('Reminder Kuota')
+                        ->icon('heroicon-o-bell')
+                        ->color('warning')
+                        ->visible(fn ($record) => $record->kuotaSekolah !== null)
+                        ->requiresConfirmation()
+                        ->modalHeading('Kirim Reminder Kuota')
+                        ->action(function ($record) {
+                            $kuota = $record->kuotaSekolah;
+                            if (!$kuota) return;
+
+                            $totalKuota = $kuota->kuota_7_8 + $kuota->kuota_9_10 + $kuota->kuota_11_12;
+                            $totalPemain = $record->pemainBolas->count();
+                            $sisaKuota = $totalKuota - $totalPemain;
+
+                            if ($sisaKuota <= 0) {
+                                // Kirim pesan kuota penuh
+                                $message = WhatsAppTemplates::quotaFull($record->nama);
+                            } else {
+                                // Kirim reminder kuota
+                                $userLink = url("/user/{$record->user_token}");
+                                $message = WhatsAppTemplates::quotaReminder($record->nama, $sisaKuota, $userLink);
+                            }
+
+                            $wablasService = app(WablasService::class);
+                            $result = $wablasService->sendMessage($record->telepon, $message);
+
+                            if ($result['success']) {
+                                Notification::make()
+                                    ->title('Reminder berhasil dikirim!')
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Gagal mengirim reminder')
+                                    ->body($result['error'] ?? 'Unknown error')
+                                    ->danger()
+                                    ->send();
+                            }
+                        }),
 
                 // Action untuk melihat detail kuota (dipindah dari kelola kuota)
                 Tables\Actions\Action::make('detail_kuota')
@@ -255,6 +334,58 @@ class SekolahBolaResource extends Resource
                 
             ])
             ->bulkActions([
+                BulkAction::make('bulk_send_whatsapp')
+                    ->label('Kirim WhatsApp Massal')
+                    ->icon('heroicon-o-megaphone')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Kirim WhatsApp ke Semua SSB Terpilih')
+                    ->modalDescription('Mengirim link pendaftaran ke semua SSB yang dipilih via WhatsApp')
+                    ->deselectRecordsAfterCompletion()
+                    ->action(function (Collection $records) {
+                        $wablasService = app(WablasService::class);
+                        $successCount = 0;
+                        $failedCount = 0;
+                        $errors = [];
+
+                        foreach ($records as $record) {
+                            $userLink = url("/user/{$record->user_token}");
+                            
+                            $message = WhatsAppTemplates::ssbRegistrationLink(
+                                $record->nama,
+                                $userLink,
+                                $record->pic
+                            );
+
+                            $result = $wablasService->sendMessage($record->telepon, $message);
+
+                            if ($result['success']) {
+                                $successCount++;
+                            } else {
+                                $failedCount++;
+                                $errors[] = "{$record->nama}: " . ($result['error'] ?? 'Unknown error');
+                            }
+
+                            // Delay untuk menghindari rate limiting
+                            sleep(1);
+                        }
+
+                        if ($successCount > 0) {
+                            Notification::make()
+                                ->title("WhatsApp Berhasil Dikirim!")
+                                ->body("Berhasil: {$successCount}, Gagal: {$failedCount}")
+                                ->success()
+                                ->send();
+                        }
+
+                        if ($failedCount > 0) {
+                            Notification::make()
+                                ->title("Ada Pesan yang Gagal Dikirim")
+                                ->body(implode("\n", array_slice($errors, 0, 3)) . ($failedCount > 3 ? "\n..." : ''))
+                                ->warning()
+                                ->send();
+                        }
+                    }),
                 Tables\Actions\BulkActionGroup::make([
                     ExportBulkAction::make()
                         ->exports([
