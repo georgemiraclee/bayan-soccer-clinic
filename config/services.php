@@ -17,6 +17,11 @@ return [
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
+    
+    'wablas' => [
+            'base_url' => env('WABLAS_BASE_URL', 'https://sby.wablas.com'),
+            'token' => env('WABLAS_TOKEN'),
+        ],
 
     'resend' => [
         'key' => env('RESEND_KEY'),
