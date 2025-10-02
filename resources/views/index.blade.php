@@ -69,6 +69,11 @@
             color: #fff;
         }
 
+        .logo img {
+            height: 50px;
+            width: auto;
+        }
+
         .get-in-touch {
             background: transparent;
             border: 2px solid #fff;
@@ -120,6 +125,34 @@
             margin-top: 60px;
         }
 
+        .register-button {
+            background: #12bbfdff;
+            border: none;
+            color: #fff;
+            padding: 18px 48px;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 40px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(18, 187, 253, 0.4);
+            animation: fadeInUp 1.4s ease-out;
+        }
+
+        .register-button:hover {
+            background: #0ea5e0;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(18, 187, 253, 0.6);
+        }
+
+        .register-button:active {
+            transform: translateY(-1px);
+        }
+
         .subtitle {
             position: absolute;
             top: 50px;
@@ -162,6 +195,36 @@
             opacity: 0.9;
         }
 
+        .breadcrumb {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        .breadcrumb a {
+            color: #fff;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            opacity: 1;
+            color: #12bbfdff;
+        }
+
+        .breadcrumb-separator {
+            color: #fff;
+            opacity: 0.6;
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 15px 20px;
@@ -169,6 +232,10 @@
             
             .logo {
                 font-size: 20px;
+            }
+
+            .logo img {
+                height: 40px;
             }
             
             .get-in-touch {
@@ -179,6 +246,12 @@
             .main-title {
                 font-size: clamp(60px, 15vw, 120px);
                 margin-top: 40px;
+            }
+
+            .register-button {
+                padding: 14px 32px;
+                font-size: 16px;
+                margin-top: 30px;
             }
             
             .year-tag,
@@ -199,6 +272,12 @@
                 bottom: 20px;
                 right: 20px;
                 padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .breadcrumb {
+                bottom: 100px;
+                left: 20px;
                 font-size: 12px;
             }
         }
@@ -252,18 +331,17 @@
 <body>
     <video class="video-background" autoplay muted loop>
         <source src="https://res.cloudinary.com/dgcedsrzf/video/upload/v1758861275/dji_fly_20241027_081323_0_1730259840479_video_cache_ig3omc.mp4" type="video/mp4">
-        <!-- Fallback for browsers that don't support the video format -->
     </video>
     
     <div class="overlay"></div>
 
     <header class="header">
-     <div class="logo">
+        <div class="logo">
             <img src="{{ asset('images/white.png') }}" alt="BAYAN SC Logo" style="height: 50px; width: auto;">
         </div>
-        <div style="display: flex; align-items: center;">
+       <!-- <div style="display: flex; align-items: center;">
             <a href="https://wa.me/6282251752711" class="get-in-touch">CONTACT ↗</a>
-        </div>
+        </div>-->
     </header>
 
     <div class="container">
@@ -272,8 +350,14 @@
             SOCCER<br>
             CLINIC
         </h1>
+        <a href="/daftar-ssb" class="register-button">DAFTAR SEKARANG</a>
     </div>
 
+    <div class="breadcrumb">
+        <a href="/">HOME</a>
+        <span class="breadcrumb-separator">/</span>
+        <a href="/adminajah/login">ADMIN</a>
+    </div>
     
     <div class="side-info">BALIKPAPAN STADION BATAKAN</div>
     
@@ -303,6 +387,16 @@
         
         getInTouchBtn.addEventListener('mouseleave', function() {
             this.style.transform = 'scale(1)';
+        });
+
+        // Register button hover effects
+        const registerBtn = document.querySelector('.register-button');
+        registerBtn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px) scale(1.02)';
+        });
+        
+        registerBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
         });
 
         // Handle video loading error
