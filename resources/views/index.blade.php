@@ -6,15 +6,14 @@
     <title>Bayan Soccer Clinic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap');
-        
+  <style>
         body {
-            font-family: 'Arial Black', Arial, sans-serif;
+            font-family: 'Arial', 'Helvetica', sans-serif;
         }
         
         .main-title {
-            font-family: 'Arial Black', 'Arial Black', cursive;
+            font-family: 'Arial Black', 'Arial', sans-serif;
+            font-weight: 900;
             line-height: 0.85;
             letter-spacing: -0.02em;
         }
