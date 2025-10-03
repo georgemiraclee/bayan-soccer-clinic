@@ -14,7 +14,7 @@
         }
         
         .main-title {
-            font-family: 'Montserrat', 'Arial Black', cursive;
+            font-family: 'Arial Black', 'Arial Black', cursive;
             line-height: 0.85;
             letter-spacing: -0.02em;
         }
