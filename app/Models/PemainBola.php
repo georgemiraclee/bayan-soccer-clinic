@@ -9,6 +9,18 @@ class PemainBola extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+{
+    static::saved(function ($pemain) {
+        $pemain->sekolahBola?->updatePlayerCounts();
+    });
+
+    static::deleted(function ($pemain) {
+        $pemain->sekolahBola?->updatePlayerCounts();
+    });
+}
+
+
     protected $table = 'pemain_bolas';
 
     protected $fillable = [

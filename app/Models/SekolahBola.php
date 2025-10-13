@@ -20,6 +20,10 @@ class SekolahBola extends Model
         'email',
         'telepon',
         'user_token',
+         'jumlah_pemain_7_8',
+        'jumlah_pemain_9_10',
+        'jumlah_pemain_11_12',
+        'jumlah_pemain_total',
     ];
 
     protected $casts = [
@@ -59,6 +63,22 @@ class SekolahBola extends Model
 
         return $token;
     }
+    public function updatePlayerCounts(): void
+{
+    $counts = $this->pemainBolas()
+        ->selectRaw('umur_kategori, COUNT(*) as count')
+        ->groupBy('umur_kategori')
+        ->pluck('count', 'umur_kategori')
+        ->toArray();
+
+    $this->update([
+        'jumlah_pemain_7_8' => $counts['7-8'] ?? 0,
+        'jumlah_pemain_9_10' => $counts['9-10'] ?? 0,
+        'jumlah_pemain_11_12' => $counts['11-12'] ?? 0,
+        'jumlah_pemain_total' => array_sum($counts),
+    ]);
+}
+
 
     /**
      * Relasi dengan PemainBola
