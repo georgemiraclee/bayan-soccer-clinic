@@ -93,6 +93,28 @@ class SekolahBolaResource extends Resource
                     ->color('info')
                     ->alignCenter(),
 
+                Tables\Columns\TextColumn::make('jumlah_pemain_7_8')
+                    ->label('Pemain 7–8')
+                    ->sortable()
+                    ->badge()
+                    ->color('info')
+                    ->alignCenter(),
+
+                Tables\Columns\TextColumn::make('jumlah_pemain_9_10')
+                    ->label('Pemain 9–10')
+                    ->sortable()
+                    ->badge()
+                    ->color('warning')
+                    ->alignCenter(),
+
+                Tables\Columns\TextColumn::make('jumlah_pemain_11_12')
+                    ->label('Pemain 11–12')
+                    ->sortable()
+                    ->badge()
+                    ->color('success')
+                    ->alignCenter(),
+
+
                 // Kolom kuota
                 Tables\Columns\TextColumn::make('kuota_info')
                     ->label('Kuota (7-8 | 9-10 | 11-12)')
@@ -134,7 +156,6 @@ class SekolahBolaResource extends Resource
                     })
                     ->alignCenter(),
 
-                    
                 Tables\Columns\TextColumn::make('user_link')
                     ->label('User Link')
                     ->getStateUsing(fn ($record) => url("/user/{$record->user_token}"))
@@ -147,7 +168,6 @@ class SekolahBolaResource extends Resource
                     ->color('primary')
                     ->icon('heroicon-m-link')
                     ->formatStateUsing(fn ($state) => 'Buka Link'),
-
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
                     ->dateTime('d M Y H:i')
@@ -207,46 +227,46 @@ class SekolahBolaResource extends Resource
                                 ->send();
                         }
                     }),
-                    Tables\Actions\Action::make('send_quota_reminder')
-                        ->label('Reminder Kuota')
-                        ->icon('heroicon-o-bell')
-                        ->color('warning')
-                        ->visible(fn ($record) => $record->kuotaSekolah !== null)
-                        ->requiresConfirmation()
-                        ->modalHeading('Kirim Reminder Kuota')
-                        ->action(function ($record) {
-                            $kuota = $record->kuotaSekolah;
-                            if (!$kuota) return;
+                   // Tables\Actions\Action::make('send_quota_reminder')
+                     //   ->label('Reminder Kuota')
+                     //   ->icon('heroicon-o-bell')
+                     //   ->color('warning')
+                     //   ->visible(fn ($record) => $record->kuotaSekolah !== null)
+                     //   ->requiresConfirmation()
+                      //  ->modalHeading('Kirim Reminder Kuota')
+                      //  ->action(function ($record) {
+                       //     $kuota = $record->kuotaSekolah;
+                       //     if (!$kuota) return;
 
-                            $totalKuota = $kuota->kuota_7_8 + $kuota->kuota_9_10 + $kuota->kuota_11_12;
-                            $totalPemain = $record->pemainBolas->count();
-                            $sisaKuota = $totalKuota - $totalPemain;
+                        //    $totalKuota = $kuota->kuota_7_8 + $kuota->kuota_9_10 + $kuota->kuota_11_12;
+                        //    $totalPemain = $record->pemainBolas->count();
+                        //    $sisaKuota = $totalKuota - $totalPemain;
 
-                            if ($sisaKuota <= 0) {
+                          //  if ($sisaKuota <= 0) {
                                 // Kirim pesan kuota penuh
-                                $message = WhatsAppTemplates::quotaFull($record->nama);
-                            } else {
+                          //      $message = WhatsAppTemplates::quotaFull($record->nama);
+                          //  } else {
                                 // Kirim reminder kuota
-                                $userLink = url("/user/{$record->user_token}");
-                                $message = WhatsAppTemplates::quotaReminder($record->nama, $sisaKuota, $userLink);
-                            }
+                           //     $userLink = url("/user/{$record->user_token}");
+                          //      $message = WhatsAppTemplates::quotaReminder($record->nama, $sisaKuota, $userLink);
+                         //   }
 
-                            $wablasService = app(WablasService::class);
-                            $result = $wablasService->sendMessage($record->telepon, $message);
+                        //    $wablasService = app(WablasService::class);
+                         //   $result = $wablasService->sendMessage($record->telepon, $message);
 
-                            if ($result['success']) {
-                                Notification::make()
-                                    ->title('Reminder berhasil dikirim!')
-                                    ->success()
-                                    ->send();
-                            } else {
-                                Notification::make()
-                                    ->title('Gagal mengirim reminder')
-                                    ->body($result['error'] ?? 'Unknown error')
-                                    ->danger()
-                                    ->send();
-                            }
-                        }),
+                         //   if ($result['success']) {
+                          //      Notification::make()
+                          //          ->title('Reminder berhasil dikirim!')
+                          //          ->success()
+                           //         ->send();
+                           // } else {
+                        //        Notification::make()
+                         //           ->title('Gagal mengirim reminder')
+                         //           ->body($result['error'] ?? 'Unknown error')
+                         //          ->danger()
+                          //          ->send();
+                         //   }
+                      //  }),
 
                 // Action untuk melihat detail kuota (dipindah dari kelola kuota)
                 Tables\Actions\Action::make('detail_kuota')
