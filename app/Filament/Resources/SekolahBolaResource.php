@@ -6,8 +6,6 @@ use App\Filament\Resources\SekolahBolaResource\Pages;
 use App\Filament\Resources\SekolahBolaResource\RelationManagers\PemainBolasRelationManager;
 use App\Models\SekolahBola;
 use App\Models\KuotaSekolah;
-use App\Services\WablasService;
-use App\Helpers\WhatsAppTemplates;
 use Filament\Tables\Actions\BulkAction;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Forms;
@@ -30,6 +28,85 @@ class SekolahBolaResource extends Resource
     protected static ?string $navigationLabel = 'List SSB';
     protected static ?string $pluralLabel = 'List SSB';
     protected static ?string $modelLabel = 'List SSB';
+
+    /**
+     * Generate WhatsApp redirect link with pre-filled message
+     */
+    private static function generateWhatsAppLink(string $phoneNumber, string $message): string
+    {
+        // Clean phone number (remove +, spaces, dashes)
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phoneNumber);
+        
+        // Add country code if not exists (assume Indonesia +62)
+        if (!str_starts_with($cleanPhone, '62')) {
+            // Remove leading 0 if exists
+            $cleanPhone = ltrim($cleanPhone, '0');
+            $cleanPhone = '62' . $cleanPhone;
+        }
+        
+        // URL encode the message
+        $encodedMessage = urlencode($message);
+        
+        // Return WhatsApp API link
+        return "https://wa.me/{$cleanPhone}?text={$encodedMessage}";
+    }
+
+    /**
+     * Generate registration message template
+     */
+    private static function getRegistrationMessage(string $namaSSB, string $userLink, string $picName = '', $kuotaSekolah = null): string
+    {
+        $hour = date('H');
+        $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 15 ? 'Selamat Siang' : ($hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
+        
+        if ($picName) {
+            $greeting .= " Bapak/Ibu {$picName}";
+        }
+
+        // Build kategori section based on kuota
+        $kategoriText = " *Kategori yang Tersedia:*\n";
+        
+        if ($kuotaSekolah) {
+            $availableKategori = [];
+            
+            if ($kuotaSekolah->kuota_7_8 > 0) {
+                $availableKategori[] = "• 7-8 Tahun (Kuota: {$kuotaSekolah->kuota_7_8} pemain)";
+            }
+            
+            if ($kuotaSekolah->kuota_9_10 > 0) {
+                $availableKategori[] = "• 9-10 Tahun (Kuota: {$kuotaSekolah->kuota_9_10} pemain)";
+            }
+            
+            if ($kuotaSekolah->kuota_11_12 > 0) {
+                $availableKategori[] = "• 11-12 Tahun (Kuota: {$kuotaSekolah->kuota_11_12} pemain)";
+            }
+            
+            if (empty($availableKategori)) {
+                $kategoriText .= "• Belum ada kuota yang diset\n";
+            } else {
+                $kategoriText .= implode("\n", $availableKategori) . "\n";
+            }
+        } else {
+            // Jika kuota belum diset, tampilkan kategori default
+            $kategoriText .= "• 7-8 Tahun\n" .
+                           "• 9-10 Tahun\n" .
+                           "• 11-12 Tahun\n";
+        }
+
+    return " *REGISTRASI ULANG PEMAIN SSB - BAYAN SOCCER CLINIC*\n\n" .
+        "{$greeting}\n\n" .
+        "Sehubungan dengan penyesuaian data peserta, kami meminta Tim *{$namaSSB}* untuk melakukan *registrasi ulang pemain* sesuai dengan kuota yang telah ditentukan.\n\n" .
+        " *Link Registrasi Ulang Khusus SSB Anda:*\n" .
+        "{$userLink}\n\n" .
+        $kategoriText . "\n" .
+        " *Penting:*\n" .
+        "- Gunakan link di atas untuk melakukan registrasi ulang pemain sesuai kuota yang tersedia\n" .
+        "- Pastikan data pemain diisi dengan lengkap dan benar\n" .
+        "- Registrasi ulang diperlukan untuk validasi data peserta yang akan mengikuti kegiatan\n\n" .
+        "Jika ada pertanyaan, silakan hubungi panitia.\n\n" .
+        "Terima kasih atas kerja samanya!\n" .
+        "*Panitia Bayan Soccer Clinic*";
+        }
 
     public static function form(Form $form): Form
     {
@@ -69,6 +146,9 @@ class SekolahBolaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->withOptimalRelations() // Gunakan scope dari model
+            )
             ->columns([
                 Tables\Columns\TextColumn::make('nama')
                     ->label('Nama SSB')
@@ -98,24 +178,25 @@ class SekolahBolaResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color('info')
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->getStateUsing(fn ($record) => $record->jumlah_pemain_7_8 ?? 0),
 
                 Tables\Columns\TextColumn::make('jumlah_pemain_9_10')
                     ->label('Pemain 9–10')
                     ->sortable()
                     ->badge()
                     ->color('warning')
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->getStateUsing(fn ($record) => $record->jumlah_pemain_9_10 ?? 0),
 
                 Tables\Columns\TextColumn::make('jumlah_pemain_11_12')
                     ->label('Pemain 11–12')
                     ->sortable()
                     ->badge()
                     ->color('success')
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->getStateUsing(fn ($record) => $record->jumlah_pemain_11_12 ?? 0),
 
-
-                // Kolom kuota
                 Tables\Columns\TextColumn::make('kuota_info')
                     ->label('Kuota (7-8 | 9-10 | 11-12)')
                     ->getStateUsing(function ($record) {
@@ -137,7 +218,7 @@ class SekolahBolaResource extends Resource
                             return 'Tidak ada kuota';
                         }
                         $totalKuota = $kuota->kuota_7_8 + $kuota->kuota_9_10 + $kuota->kuota_11_12;
-                        $totalPemain = $record->pemainBolas->count();
+                        $totalPemain = $record->pemain_bolas_count ?? 0;
                         
                         if ($totalPemain >= $totalKuota) {
                             return 'Penuh';
@@ -168,6 +249,7 @@ class SekolahBolaResource extends Resource
                     ->color('primary')
                     ->icon('heroicon-m-link')
                     ->formatStateUsing(fn ($state) => 'Buka Link'),
+                    
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
                     ->dateTime('d M Y H:i')
@@ -193,82 +275,20 @@ class SekolahBolaResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                
+                // WhatsApp Action - Opens WhatsApp Web/App with pre-filled message
                 Tables\Actions\Action::make('send_whatsapp')
                     ->label('Kirim WhatsApp')
                     ->icon('heroicon-o-chat-bubble-left-right')
                     ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('Kirim Pesan WhatsApp')
-                    ->modalDescription('Kirim link pendaftaran ke SSB via WhatsApp')
-                    ->modalSubmitActionLabel('Kirim Sekarang')
-                    ->action(function ($record) {
-                        $wablasService = app(WablasService::class);
+                    ->url(function ($record) {
                         $userLink = url("/user/{$record->user_token}");
-                        
-                        $message = WhatsAppTemplates::ssbRegistrationLink(
-                            $record->nama,
-                            $userLink,
-                            $record->pic
-                        );
+                        $message = self::getRegistrationMessage($record->nama, $userLink, $record->pic, $record->kuotaSekolah);
+                        return self::generateWhatsAppLink($record->telepon, $message);
+                    })
+                    ->openUrlInNewTab()
+                    ->tooltip('Buka WhatsApp dengan pesan otomatis'),
 
-                        $result = $wablasService->sendMessage($record->telepon, $message);
-
-                        if ($result['success']) {
-                            Notification::make()
-                                ->title('WhatsApp berhasil dikirim!')
-                                ->body("Pesan telah dikirim ke {$record->nama}")
-                                ->success()
-                                ->send();
-                        } else {
-                            Notification::make()
-                                ->title('Gagal mengirim WhatsApp')
-                                ->body('Error: ' . ($result['error'] ?? 'Unknown error'))
-                                ->danger()
-                                ->send();
-                        }
-                    }),
-                   // Tables\Actions\Action::make('send_quota_reminder')
-                     //   ->label('Reminder Kuota')
-                     //   ->icon('heroicon-o-bell')
-                     //   ->color('warning')
-                     //   ->visible(fn ($record) => $record->kuotaSekolah !== null)
-                     //   ->requiresConfirmation()
-                      //  ->modalHeading('Kirim Reminder Kuota')
-                      //  ->action(function ($record) {
-                       //     $kuota = $record->kuotaSekolah;
-                       //     if (!$kuota) return;
-
-                        //    $totalKuota = $kuota->kuota_7_8 + $kuota->kuota_9_10 + $kuota->kuota_11_12;
-                        //    $totalPemain = $record->pemainBolas->count();
-                        //    $sisaKuota = $totalKuota - $totalPemain;
-
-                          //  if ($sisaKuota <= 0) {
-                                // Kirim pesan kuota penuh
-                          //      $message = WhatsAppTemplates::quotaFull($record->nama);
-                          //  } else {
-                                // Kirim reminder kuota
-                           //     $userLink = url("/user/{$record->user_token}");
-                          //      $message = WhatsAppTemplates::quotaReminder($record->nama, $sisaKuota, $userLink);
-                         //   }
-
-                        //    $wablasService = app(WablasService::class);
-                         //   $result = $wablasService->sendMessage($record->telepon, $message);
-
-                         //   if ($result['success']) {
-                          //      Notification::make()
-                          //          ->title('Reminder berhasil dikirim!')
-                          //          ->success()
-                           //         ->send();
-                           // } else {
-                        //        Notification::make()
-                         //           ->title('Gagal mengirim reminder')
-                         //           ->body($result['error'] ?? 'Unknown error')
-                         //          ->danger()
-                          //          ->send();
-                         //   }
-                      //  }),
-
-                // Action untuk melihat detail kuota (dipindah dari kelola kuota)
                 Tables\Actions\Action::make('detail_kuota')
                     ->label('Detail Kuota')
                     ->icon('heroicon-m-information-circle')
@@ -281,11 +301,10 @@ class SekolahBolaResource extends Resource
                             return 'Kuota belum diset untuk SSB ini.';
                         }
 
-                        // Hitung pemain per kategori
-                        $pemain = $record->pemainBolas;
-                        $pemain_7_8 = $pemain->where('umur_kategori', '7-8')->count();
-                        $pemain_9_10 = $pemain->where('umur_kategori', '9-10')->count();
-                        $pemain_11_12 = $pemain->where('umur_kategori', '11-12')->count();
+                        // Gunakan data yang sudah di-load dari withCount
+                        $pemain_7_8 = $record->jumlah_pemain_7_8 ?? 0;
+                        $pemain_9_10 = $record->jumlah_pemain_9_10 ?? 0;
+                        $pemain_11_12 = $record->jumlah_pemain_11_12 ?? 0;
                         
                         $html = '<div class="space-y-6">';
                         $html .= '<div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">';
@@ -330,7 +349,6 @@ class SekolahBolaResource extends Resource
                         $html .= '<div class="text-sm text-blue-600 dark:text-blue-400">Terisi ' . $persentaseTotal . '%</div>';
                         $html .= '</div>';
                         
-                        // Catatan
                         if ($kuota->notes) {
                             $html .= '<div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">';
                             $html .= '<h4 class="font-semibold mb-2">Catatan:</h4>';
@@ -338,7 +356,6 @@ class SekolahBolaResource extends Resource
                             $html .= '</div>';
                         }
                         
-                        // Info update
                         $html .= '<div class="text-xs text-gray-500 border-t pt-2">';
                         $html .= 'Terakhir diupdate: ' . $kuota->updated_at->format('d M Y H:i');
                         if ($kuota->updatedBy) {
@@ -351,7 +368,6 @@ class SekolahBolaResource extends Resource
                         return new \Illuminate\Support\HtmlString($html);
                     })
                     ->modalWidth('4xl'),
-                
             ])
             ->bulkActions([
                 BulkAction::make('bulk_send_whatsapp')
@@ -360,52 +376,30 @@ class SekolahBolaResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalHeading('Kirim WhatsApp ke Semua SSB Terpilih')
-                    ->modalDescription('Mengirim link pendaftaran ke semua SSB yang dipilih via WhatsApp')
+                    ->modalDescription('Akan membuka tab WhatsApp untuk setiap SSB yang dipilih')
                     ->deselectRecordsAfterCompletion()
                     ->action(function (Collection $records) {
-                        $wablasService = app(WablasService::class);
-                        $successCount = 0;
-                        $failedCount = 0;
-                        $errors = [];
-
+                        $links = [];
+                        
                         foreach ($records as $record) {
                             $userLink = url("/user/{$record->user_token}");
-                            
-                            $message = WhatsAppTemplates::ssbRegistrationLink(
-                                $record->nama,
-                                $userLink,
-                                $record->pic
-                            );
-
-                            $result = $wablasService->sendMessage($record->telepon, $message);
-
-                            if ($result['success']) {
-                                $successCount++;
-                            } else {
-                                $failedCount++;
-                                $errors[] = "{$record->nama}: " . ($result['error'] ?? 'Unknown error');
-                            }
-
-                            // Delay untuk menghindari rate limiting
-                            sleep(1);
+                            $message = self::getRegistrationMessage($record->nama, $userLink, $record->pic, $record->kuotaSekolah);
+                            $links[] = self::generateWhatsAppLink($record->telepon, $message);
                         }
 
-                        if ($successCount > 0) {
-                            Notification::make()
-                                ->title("WhatsApp Berhasil Dikirim!")
-                                ->body("Berhasil: {$successCount}, Gagal: {$failedCount}")
-                                ->success()
-                                ->send();
-                        }
+                        // Store links in session to open them via JavaScript
+                        session(['whatsapp_links' => $links]);
 
-                        if ($failedCount > 0) {
-                            Notification::make()
-                                ->title("Ada Pesan yang Gagal Dikirim")
-                                ->body(implode("\n", array_slice($errors, 0, 3)) . ($failedCount > 3 ? "\n..." : ''))
-                                ->warning()
-                                ->send();
-                        }
+                        Notification::make()
+                            ->title('Siap Mengirim WhatsApp')
+                            ->body("Akan membuka {$records->count()} tab WhatsApp. Pastikan popup tidak diblokir browser.")
+                            ->success()
+                            ->send();
+
+                        // Return JavaScript to open links
+                        return redirect()->back()->with('openWhatsAppLinks', true);
                     }),
+                    
                 Tables\Actions\BulkActionGroup::make([
                     ExportBulkAction::make()
                         ->exports([
