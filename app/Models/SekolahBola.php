@@ -20,7 +20,7 @@ class SekolahBola extends Model
         'email',
         'telepon',
         'user_token',
-         'jumlah_pemain_7_8',
+        'jumlah_pemain_7_8',
         'jumlah_pemain_9_10',
         'jumlah_pemain_11_12',
         'jumlah_pemain_total',
@@ -31,11 +31,10 @@ class SekolahBola extends Model
         'updated_at' => 'datetime',
     ];
 
+    // PENTING: Hapus appends untuk menghindari N+1 query
+    // Data ini akan di-load lewat eager loading di Resource
     protected $appends = [
         'user_url',
-        'kuota_data',
-        'kuota_status',
-        'player_counts'
     ];
 
     /**
@@ -63,22 +62,26 @@ class SekolahBola extends Model
 
         return $token;
     }
+
+    /**
+     * Update player counts dari database
+     * Dipanggil setelah create/update/delete pemain
+     */
     public function updatePlayerCounts(): void
-{
-    $counts = $this->pemainBolas()
-        ->selectRaw('umur_kategori, COUNT(*) as count')
-        ->groupBy('umur_kategori')
-        ->pluck('count', 'umur_kategori')
-        ->toArray();
+    {
+        $counts = $this->pemainBolas()
+            ->selectRaw('umur_kategori, COUNT(*) as count')
+            ->groupBy('umur_kategori')
+            ->pluck('count', 'umur_kategori')
+            ->toArray();
 
-    $this->update([
-        'jumlah_pemain_7_8' => $counts['7-8'] ?? 0,
-        'jumlah_pemain_9_10' => $counts['9-10'] ?? 0,
-        'jumlah_pemain_11_12' => $counts['11-12'] ?? 0,
-        'jumlah_pemain_total' => array_sum($counts),
-    ]);
-}
-
+        $this->update([
+            'jumlah_pemain_7_8' => $counts['7-8'] ?? 0,
+            'jumlah_pemain_9_10' => $counts['9-10'] ?? 0,
+            'jumlah_pemain_11_12' => $counts['11-12'] ?? 0,
+            'jumlah_pemain_total' => array_sum($counts),
+        ]);
+    }
 
     /**
      * Relasi dengan PemainBola
@@ -114,6 +117,7 @@ class SekolahBola extends Model
 
     /**
      * Get kuota data dalam format array
+     * OPTIMIZED: Menggunakan relasi yang sudah di-load
      */
     public function getKuotaDataAttribute(): array
     {
@@ -143,10 +147,21 @@ class SekolahBola extends Model
 
     /**
      * Get current player counts per category
+     * OPTIMIZED: Gunakan kolom denormalized atau withCount dari query
      */
     public function getPlayerCountsAttribute(): array
     {
-        // Cache the result to avoid multiple DB queries
+        // Prioritas 1: Gunakan data dari withCount (jika ada)
+        if (isset($this->attributes['jumlah_pemain_7_8'])) {
+            return [
+                '7-8' => (int) $this->attributes['jumlah_pemain_7_8'],
+                '9-10' => (int) $this->attributes['jumlah_pemain_9_10'],
+                '11-12' => (int) $this->attributes['jumlah_pemain_11_12'],
+                'total' => (int) $this->attributes['jumlah_pemain_total']
+            ];
+        }
+
+        // Prioritas 2: Cache untuk menghindari query berulang
         if (!isset($this->attributes['_player_counts_cache'])) {
             $counts = $this->pemainBolas()
                 ->selectRaw('umur_kategori, COUNT(*) as count')
@@ -175,6 +190,7 @@ class SekolahBola extends Model
 
     /**
      * Get kuota status menggunakan method dari KuotaSekolah
+     * OPTIMIZED: Gunakan relasi yang sudah di-load
      */
     public function getKuotaStatusAttribute(): array
     {
@@ -187,7 +203,7 @@ class SekolahBola extends Model
                 'color' => 'gray',
                 'overall_percentage' => 0,
                 'total_kuota' => 0,
-                'total_terisi' => $this->player_counts['total'],
+                'total_terisi' => $this->jumlah_pemain_total ?? 0,
                 'total_sisa' => 0,
                 'details' => []
             ];
@@ -240,11 +256,19 @@ class SekolahBola extends Model
 
     /**
      * Get quota summary for all categories
+     * OPTIMIZED: Gunakan data dari kolom denormalized
      */
     public function getKuotaSummary(): array
     {
         $kuotaData = $this->kuota_data;
-        $playerCounts = $this->player_counts;
+        
+        // Gunakan kolom denormalized jika tersedia
+        $playerCounts = [
+            '7-8' => $this->jumlah_pemain_7_8 ?? 0,
+            '9-10' => $this->jumlah_pemain_9_10 ?? 0,
+            '11-12' => $this->jumlah_pemain_11_12 ?? 0,
+            'total' => $this->jumlah_pemain_total ?? 0
+        ];
         
         if (!$kuotaData['has_quota']) {
             return [
@@ -307,7 +331,11 @@ class SekolahBola extends Model
             return false;
         }
 
-        $playerCounts = $this->getCurrentPlayerCounts();
+        $playerCounts = [
+            '7-8' => $this->jumlah_pemain_7_8 ?? 0,
+            '9-10' => $this->jumlah_pemain_9_10 ?? 0,
+            '11-12' => $this->jumlah_pemain_11_12 ?? 0,
+        ];
         $kuotaData = $this->kuota_data;
 
         foreach (['7-8', '9-10', '11-12'] as $kategori) {
@@ -328,7 +356,11 @@ class SekolahBola extends Model
             return false;
         }
 
-        $playerCounts = $this->getCurrentPlayerCounts();
+        $playerCounts = [
+            '7-8' => $this->jumlah_pemain_7_8 ?? 0,
+            '9-10' => $this->jumlah_pemain_9_10 ?? 0,
+            '11-12' => $this->jumlah_pemain_11_12 ?? 0,
+        ];
         $kuotaData = $this->kuota_data;
 
         foreach (['7-8', '9-10', '11-12'] as $kategori) {
@@ -350,7 +382,11 @@ class SekolahBola extends Model
         }
 
         $availableCategories = [];
-        $playerCounts = $this->getCurrentPlayerCounts();
+        $playerCounts = [
+            '7-8' => $this->jumlah_pemain_7_8 ?? 0,
+            '9-10' => $this->jumlah_pemain_9_10 ?? 0,
+            '11-12' => $this->jumlah_pemain_11_12 ?? 0,
+        ];
         $kuotaData = $this->kuota_data;
 
         foreach (['7-8', '9-10', '11-12'] as $kategori) {
@@ -396,6 +432,16 @@ class SekolahBola extends Model
     public function scopeByUserToken($query, $token)
     {
         return $query->where('user_token', $token);
+    }
+
+    /**
+     * Scope untuk load data dengan optimal relations (UNTUK FILAMENT)
+     * Menghindari N+1 query problem
+     */
+    public function scopeWithOptimalRelations($query)
+    {
+        return $query->with(['kuotaSekolah:id,sekolah_bola_id,kuota_7_8,kuota_9_10,kuota_11_12,notes,updated_by,updated_at'])
+            ->select('sekolah_bolas.*'); // Pastikan semua kolom ter-select termasuk jumlah_pemain_*
     }
 
     /**
