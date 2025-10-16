@@ -55,12 +55,13 @@
             SOCCER<br>
             CLINIC
         </h1>
-        <!-- <a href="/daftar-ssb" 
+
+         <a href="/daftar-ssb" 
            id="registerBtn"
            class="bg-[#12bbfd] text-white px-12 py-4 md:px-16 md:py-5 text-base md:text-lg font-black tracking-widest uppercase mt-8 md:mt-10 transition-all duration-300 hover:bg-[#0ea5e0] hover:shadow-2xl opacity-0"
            style="box-shadow: 0 4px 15px rgba(18, 187, 253, 0.4);">
            DAFTAR SEKARANG
-        </a>-->
+        </a>
     </div>
 
     <!-- Breadcrumb -->
