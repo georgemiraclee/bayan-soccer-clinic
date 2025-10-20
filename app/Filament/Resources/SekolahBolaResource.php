@@ -401,7 +401,7 @@ class SekolahBolaResource extends Resource
                     }),
                     
                 Tables\Actions\BulkActionGroup::make([
-                    ExportBulkAction::make()
+                   ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
                                 ->fromTable()
@@ -412,11 +412,10 @@ class SekolahBolaResource extends Resource
                                     Column::make('pic')->heading('PIC'),
                                     Column::make('email')->heading('Email'),
                                     Column::make('telepon')->heading('Nomor Telepon'),
-                                    Column::make('user_token')->heading('User Token'),
-                                    Column::make('pemain_bola_count')->heading('Jumlah Pemain'),
-                                    Column::make('user_link')
+                                    Column::make('user_token')
                                         ->heading('User Link')
-                                        ->formatStateUsing(fn ($state, $record) => url("/user/{$record->user_token}")),
+                                        ->formatStateUsing(fn ($state) => url("/user/{$state}")),
+                                    Column::make('pemain_bola_count')->heading('Jumlah Pemain'),
                                     Column::make('created_at')
                                         ->heading('Tanggal Dibuat')
                                         ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i')),
@@ -427,7 +426,7 @@ class SekolahBolaResource extends Resource
                 ]),
             ])
             ->headerActions([
-                \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
+              \pxlrbt\FilamentExcel\Actions\Tables\ExportAction::make()
                     ->exports([
                         ExcelExport::make()
                             ->fromTable()
@@ -438,11 +437,10 @@ class SekolahBolaResource extends Resource
                                 Column::make('pic')->heading('PIC'),
                                 Column::make('email')->heading('Email'),
                                 Column::make('telepon')->heading('Nomor Telepon'),
-                                Column::make('user_token')->heading('User Token'),
-                                Column::make('pemain_bola_count')->heading('Jumlah Pemain'),
-                                Column::make('user_link')
+                                Column::make('user_token')
                                     ->heading('User Link')
-                                    ->formatStateUsing(fn ($state, $record) => url("/user/{$record->user_token}")),
+                                    ->formatStateUsing(fn ($state) => url("/user/{$state}")),
+                                Column::make('pemain_bola_count')->heading('Jumlah Pemain'),
                                 Column::make('created_at')
                                     ->heading('Tanggal Dibuat')
                                     ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i')),
@@ -450,7 +448,7 @@ class SekolahBolaResource extends Resource
                     ])
                     ->label('Export Semua Data')
                     ->color('success')
-                    ->icon('heroicon-o-document-arrow-down'),
+                    ->icon('heroicon-o-document-arrow-down')
             ]);
     }
 
