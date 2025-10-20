@@ -40,11 +40,39 @@
         <div id="form-sekolah" class="bg-white shadow-lg rounded-lg p-4 sm:p-8">
             <h1 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-800">Form Pendaftaran SSB</h1>
             
-            <form id="sekolah-form" class="space-y-4 sm:space-y-6">
+           <form id="sekolah-form" class="space-y-4 sm:space-y-6">
                 <div class="grid gap-4 sm:gap-6 md:grid-cols-2">
                     <div>
                         <label class="block font-medium text-gray-700 mb-1 sm:mb-2">Nama SSB *</label>
-                        <input type="text" id="nama_sekolah" required class="w-full border border-gray-300 rounded-lg p-2 sm:p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Masukkan nama SSB">
+                        <select id="nama_sekolah" required class="w-full border border-gray-300 rounded-lg p-2 sm:p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white">
+                            <option value="">-- Pilih SSB --</option>
+                            <option value="ABABIL">ABABIL</option>
+                            <option value="AREBA">AREBA</option>
+                            <option value="BINTANG TIMUR">BINTANG TIMUR</option>
+                            <option value="GUBAH FS">GUBAH FS</option>
+                            <option value="GUNTUR PUTRA">GUNTUR PUTRA</option>
+                            <option value="MITRA TERAS">MITRA TERAS</option>
+                            <option value="TELKOM">TELKOM</option>
+                            <option value="TOTAL">TOTAL</option>
+                            <option value="ACADEMY BAS">ACADEMY BAS</option>
+                            <option value="BEBANIR">BEBANIR</option>
+                            <option value="BINA BOLA">BINA BOLA</option>
+                            <option value="CSA">CSA</option>
+                            <option value="DOSTEP">DOSTEP</option>
+                            <option value="GALAXI">GALAXI</option>
+                            <option value="GENERASI">GENERASI</option>
+                            <option value="KARIANGAU">KARIANGAU</option>
+                            <option value="KUKAYU">KUKAYU</option>
+                            <option value="PINISI JUNIOR">PINISI JUNIOR</option>
+                            <option value="RAJAWALI PUTRA BORNEO">RAJAWALI PUTRA BORNEO</option>
+                            <option value="SAMURAI FC">SAMURAI FC</option>
+                            <option value="SATRIA KURMA">SATRIA KURMA</option>
+                            <option value="SUPER KIDS">SUPER KIDS</option>
+                            <option value="TAMBORA">TAMBORA</option>
+                            <option value="TYPHOON">TYPHOON</option>
+                            <option value="MS 22">MS 22</option>
+                            <option value="FONI SOCCER">FONI SOCCER</option>
+                        </select>
                     </div>
                     
                     <div>
