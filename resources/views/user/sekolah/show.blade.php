@@ -719,7 +719,7 @@
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         // Fixed deadline: September 30, 2025 at 23:59:59 (customizable)
-        const REGISTRATION_DEADLINE = new Date('2025-11-1T23:59:59+08:00'); // UTC+7 for Indonesia
+        const REGISTRATION_DEADLINE = new Date('2025-11-01T23:59:59+08:00'); // UTC+7 for Indonesia
         
         // Check if quota is available from server-side data
         const hasQuota = @json($kuotaData['has_quota']);
