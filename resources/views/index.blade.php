@@ -55,6 +55,7 @@
             SOCCER<br>
             CLINIC
         </h1>
+
          <a href="/" 
            id="registerBtn"
            class="bg-[#800000] text-white px-12 py-4 md:px-16 md:py-5 text-base md:text-lg font-black tracking-widest uppercase mt-8 md:mt-10 transition-all duration-300 hover:bg-[#800000] hover:shadow-2xl opacity-0"
