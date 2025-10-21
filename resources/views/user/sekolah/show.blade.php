@@ -376,50 +376,149 @@
                                 <p class="mb-4 text-xs md:text-sm">
                                     Pemain terdaftar: <strong class="text-green-800">{{ $kuotaData['current_counts']['total'] }} Orang dari {{ $kuotaData['total'] }} Orang</strong>
                                 </p>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                                    <div class="bg-white rounded-lg p-3 md:p-4 border border-blue-100 shadow-sm">
+                              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                                    <!-- Kelompok 7-8 Tahun -->
+                                    <div class="bg-white rounded-lg p-3 md:p-4 border shadow-sm
+                                        @if($kuotaData['percentage']['7-8'] >= 100) 
+                                            border-red-300 bg-red-50
+                                        @elseif($kuotaData['percentage']['7-8'] >= 80) 
+                                            border-yellow-300 bg-yellow-50
+                                        @else 
+                                            border-blue-100
+                                        @endif">
                                         <div class="flex items-center justify-between mb-2">
                                             <span class="text-xs md:text-sm font-medium text-gray-600">Kelompok 7-8 Tahun</span>
-                                            <span class="badge badge-info">{{ $kuotaData['7-8'] }} kuota</span>
+                                            @if($kuotaData['percentage']['7-8'] >= 100)
+                                                <span class="badge bg-red-100 text-red-700 border border-red-300">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i>Melebihi Batas!
+                                                </span>
+                                            @elseif($kuotaData['percentage']['7-8'] >= 80)
+                                                <span class="badge bg-yellow-100 text-yellow-700 border border-yellow-300">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>Hampir Penuh
+                                                </span>
+                                            @else
+                                                <span class="badge badge-info">Kuota Tersedia: {{ $kuotaData['7-8'] }}</span>
+                                            @endif
                                         </div>
                                         <div class="flex items-center justify-between text-xs mb-2">
-                                            <span class="text-gray-500">Terdaftar: {{ $kuotaData['current_counts']['7-8'] }}</span>
-                                            <span class="text-green-600 font-medium">Sisa: {{ $kuotaData['remaining']['7-8'] }}</span>
+                                            <span class="text-gray-500 font-bold">Peserta saat ini: {{ $kuotaData['current_counts']['7-8'] }}</span>
+                                            <span class="font-medium
+                                                @if($kuotaData['remaining']['7-8'] < 0) text-red-600
+                                                @elseif($kuotaData['remaining']['7-8'] <= 2) text-yellow-600
+                                                @else text-green-600
+                                                @endif">
+                                                Sisa Kuota: {{ $kuotaData['remaining']['7-8'] }}
+                                            </span>
                                         </div>
                                         <div class="w-full bg-gray-200 rounded-full h-2">
-                                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-                                               ></div>
+                                            <div class="h-2 rounded-full transition-all duration-300
+                                                @if($kuotaData['percentage']['7-8'] >= 100) bg-red-500
+                                                @elseif($kuotaData['percentage']['7-8'] >= 80) bg-yellow-500
+                                                @else bg-blue-500
+                                                @endif" 
+                                                style="width: {{ min($kuotaData['percentage']['7-8'], 100) }}%"></div>
                                         </div>
+                                        @if($kuotaData['percentage']['7-8'] >= 100)
+                                            <div class="mt-2 text-xs text-red-600 font-medium">
+                                                <i class="fas fa-info-circle mr-1"></i>Kuota terlampaui
+                                            </div>
+                                        @endif
                                     </div>
                                     
-                                    <div class="bg-white rounded-lg p-3 md:p-4 border border-blue-100 shadow-sm">
+                                    <!-- Kelompok 9-10 Tahun -->
+                                    <div class="bg-white rounded-lg p-3 md:p-4 border shadow-sm
+                                        @if($kuotaData['percentage']['9-10'] >= 100) 
+                                            border-red-300 bg-red-50
+                                        @elseif($kuotaData['percentage']['9-10'] >= 80) 
+                                            border-yellow-300 bg-yellow-50
+                                        @else 
+                                            border-blue-100
+                                        @endif">
                                         <div class="flex items-center justify-between mb-2">
                                             <span class="text-xs md:text-sm font-medium text-gray-600">Kelompok 9-10 Tahun</span>
-                                            <span class="badge badge-warning">{{ $kuotaData['9-10'] }} kuota</span>
+                                            @if($kuotaData['percentage']['9-10'] >= 100)
+                                                <span class="badge bg-red-100 text-red-700 border border-red-300">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i>Melebihi Batas!
+                                                </span>
+                                            @elseif($kuotaData['percentage']['9-10'] >= 80)
+                                                <span class="badge bg-yellow-100 text-yellow-700 border border-yellow-300">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>Hampir Penuh
+                                                </span>
+                                            @else
+                                                <span class="badge badge-warning">Kuota Tersedia: {{ $kuotaData['9-10'] }}</span>
+                                            @endif
                                         </div>
                                         <div class="flex items-center justify-between text-xs mb-2">
-                                            <span class="text-gray-500">Terdaftar: {{ $kuotaData['current_counts']['9-10'] }}</span>
-                                            <span class="text-green-600 font-medium">Sisa: {{ $kuotaData['remaining']['9-10'] }}</span>
+                                            <span class="text-gray-500 font-bold">Peserta saat ini: {{ $kuotaData['current_counts']['9-10'] }}</span>
+                                            <span class="font-medium
+                                                @if($kuotaData['remaining']['9-10'] < 0) text-red-600
+                                                @elseif($kuotaData['remaining']['9-10'] <= 2) text-yellow-600
+                                                @else text-green-600
+                                                @endif">
+                                                Sisa Kuota: {{ $kuotaData['remaining']['9-10'] }}
+                                            </span>
                                         </div>
                                         <div class="w-full bg-gray-200 rounded-full h-2">
-                                            <div class="bg-yellow-500 h-2 rounded-full transition-all duration-300" 
-                                            ></div>
+                                            <div class="h-2 rounded-full transition-all duration-300
+                                                @if($kuotaData['percentage']['9-10'] >= 100) bg-red-500
+                                                @elseif($kuotaData['percentage']['9-10'] >= 80) bg-yellow-500
+                                                @else bg-yellow-500
+                                                @endif" 
+                                                style="width: {{ min($kuotaData['percentage']['9-10'], 100) }}%"></div>
                                         </div>
+                                        @if($kuotaData['percentage']['9-10'] >= 100)
+                                            <div class="mt-2 text-xs text-red-600 font-medium">
+                                                <i class="fas fa-info-circle mr-1"></i>Kuota terlampaui
+                                            </div>
+                                        @endif
                                     </div>
                                     
-                                    <div class="bg-white rounded-lg p-3 md:p-4 border border-blue-100 shadow-sm sm:col-span-2 md:col-span-1">
+                                    <!-- Kelompok 11-12 Tahun -->
+                                    <div class="bg-white rounded-lg p-3 md:p-4 border shadow-sm sm:col-span-2 md:col-span-1
+                                        @if($kuotaData['percentage']['11-12'] >= 100) 
+                                            border-red-300 bg-red-50
+                                        @elseif($kuotaData['percentage']['11-12'] >= 80) 
+                                            border-yellow-300 bg-yellow-50
+                                        @else 
+                                            border-blue-100
+                                        @endif">
                                         <div class="flex items-center justify-between mb-2">
                                             <span class="text-xs md:text-sm font-medium text-gray-600">Kelompok 11-12 Tahun</span>
-                                            <span class="badge badge-success">{{ $kuotaData['11-12'] }} kuota</span>
+                                            @if($kuotaData['percentage']['11-12'] >= 100)
+                                                <span class="badge bg-red-100 text-red-700 border border-red-300">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i>Melebihi Batas!
+                                                </span>
+                                            @elseif($kuotaData['percentage']['11-12'] >= 80)
+                                                <span class="badge bg-yellow-100 text-yellow-700 border border-yellow-300">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>Hampir Penuh
+                                                </span>
+                                            @else
+                                                <span class="badge badge-success">Kuota Tersedia: {{ $kuotaData['11-12'] }}</span>
+                                            @endif
                                         </div>
                                         <div class="flex items-center justify-between text-xs mb-2">
-                                            <span class="text-gray-500">Terdaftar: {{ $kuotaData['current_counts']['11-12'] }}</span>
-                                            <span class="text-green-600 font-medium">Sisa: {{ $kuotaData['remaining']['11-12'] }}</span>
+                                            <span class="text-gray-500 font-bold">Pemain saat ini: {{ $kuotaData['current_counts']['11-12'] }}</span>
+                                            <span class="font-medium
+                                                @if($kuotaData['remaining']['11-12'] < 0) text-red-600
+                                                @elseif($kuotaData['remaining']['11-12'] <= 2) text-yellow-600
+                                                @else text-green-600
+                                                @endif">
+                                                Sisa Kuota: {{ $kuotaData['remaining']['11-12'] }}
+                                            </span>
                                         </div>
                                         <div class="w-full bg-gray-200 rounded-full h-2">
-                                            <div class="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                                                ></div>
+                                            <div class="h-2 rounded-full transition-all duration-300
+                                                @if($kuotaData['percentage']['11-12'] >= 100) bg-red-500
+                                                @elseif($kuotaData['percentage']['11-12'] >= 80) bg-yellow-500
+                                                @else bg-green-500
+                                                @endif" 
+                                                style="width: {{ min($kuotaData['percentage']['11-12'], 100) }}%"></div>
                                         </div>
+                                        @if($kuotaData['percentage']['11-12'] >= 100)
+                                            <div class="mt-2 text-xs text-red-600 font-medium">
+                                                <i class="fas fa-info-circle mr-1"></i>Kuota terlampaui
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                                 
