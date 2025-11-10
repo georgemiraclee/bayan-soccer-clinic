@@ -372,7 +372,7 @@
 
     <script>
         // Configuration
-        const API_BASE_URL = 'https://103.150.191.9:4000';
+        const API_BASE_URL = 'https://fotokuu.web.id';
         
         let allPhotos = [];
         let currentFilter = 'all';
