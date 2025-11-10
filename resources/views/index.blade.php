@@ -291,7 +291,7 @@
                 <p class="text-white text-xl md:text-2xl font-bold">Loading your photos...</p>
             </div>
 
-            <!-- Gallery Results Section -->
+        <!-- Gallery Results Section -->
             <div id="galleryResults" class="hidden">
                 <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 mb-8">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -300,22 +300,45 @@
                             <p class="text-white/80 text-sm md:text-base" id="photoCount">Ditemukan 0 foto</p>
                         </div>
                         <button onclick="resetFaceData()" 
-                                class="w-full md:w-auto bg-orange-500 hover:bg-orange-500 text-white px-6 py-3 rounded-lg font-bold transition-all text-sm md:text-base shadow-lg">
-                             Ulang Foto
+                                class="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-bold transition-all text-sm md:text-base shadow-lg">
+                            🔄 Ulang Foto
                         </button>
                     </div>
                 </div>
 
+
                 <!-- Photos Grid -->
-                <div id="photosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                <div id="photosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-12">
                     <!-- Photos will be inserted here -->
+                </div>
+                
+                <!-- Call to Action - Lihat Semua Foto -->
+              <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-10 text-center shadow-2xl transform hover:scale-105 transition-all duration-300 mt-8">
+                    <h3 class="text-2xl md:text-3xl font-black text-white mb-3">
+                        Foto Kamu Belum Ketemu? 
+                    </h3>
+                    <p class="text-white/90 font-semibold text-sm md:text-lg mb-6 max-w-2xl mx-auto leading-relaxed">
+                        Jangan khawatir! Mungkin foto kamu ada di galeri lengkap kami. 
+                        <br class="hidden md:block font-semibold">
+                        Yuk jelajahi ratusan momen seru Soccer Clinic bersama teman-temanmu! 
+                    </p>
+                    <a href="{{ route('public.galeri.index') }}" 
+                    class="inline-block bg-white hover:bg-gray-100 text-[#12bbfd] px-8 md:px-12 py-4 rounded-xl font-black text-base md:text-lg shadow-xl transition-all transform hover:scale-110 hover:shadow-2xl">
+                        DOKUMENTASI LENGKAP
+                    </a>
                 </div>
 
                 <!-- Empty State -->
                 <div id="emptyState" class="hidden text-center py-20">
                     <div class="text-6xl md:text-8xl mb-6">📷</div>
-                    <h3 class="text-xl md:text-3xl font-bold text-white mb-3">No Photos Found</h3>
-                    <p class="text-white/70 text-sm md:text-base">We couldn't find any photos with your face yet. Check back later!</p>
+                    <h3 class="text-xl md:text-3xl font-bold text-white mb-3">Belum Ada Foto dengan Wajah Kamu</h3>
+                    <p class="text-white/70 text-sm md:text-base mb-8">Sepertinya belum ada foto dengan wajah kamu yang terdeteksi.<br class="hidden md:block">Tapi tenang, masih banyak foto seru lainnya!</p>
+                    
+                    <!-- CTA Button in Empty State -->
+                    <a href="{{ route('public.galeri.index') }}" 
+                    class="inline-block bg-[#12bbfd] hover:bg-[#0ea5e0] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all transform hover:scale-105">
+                        🖼️ Lihat Semua Foto Event
+                    </a>
                 </div>
             </div>
         </div>
@@ -338,7 +361,7 @@
         // Configuration - CHANGE THIS TO YOUR API URL
         // IMPORTANT: Use HTTP (not HTTPS) if you get SSL certificate errors
         // Or open https://192.168.0.69:5000 in browser first and accept the certificate
-        const API_BASE_URL = 'http://192.168.0.69:5000'; // Changed to HTTP to avoid SSL errors
+        const API_BASE_URL = 'http://103.150.191.9:4000'; // Changed to HTTP to avoid SSL errors
         
         let videoStream = null;
         let faceEmbedding = null;
