@@ -361,7 +361,7 @@
         // Configuration - CHANGE THIS TO YOUR API URL
         // IMPORTANT: Use HTTP (not HTTPS) if you get SSL certificate errors
         // Or open https://192.168.0.69:5000 in browser first and accept the certificate
-        const API_BASE_URL = 'https://103.150.191.9:4000'; // Changed to HTTP to avoid SSL errors
+        const API_BASE_URL = 'http://103.150.191.9:4000'; // Changed to HTTP to avoid SSL errors
         
         let videoStream = null;
         let faceEmbedding = null;
