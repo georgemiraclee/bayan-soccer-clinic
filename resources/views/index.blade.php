@@ -379,7 +379,7 @@
         let faceEmbedding = null;
 
         // Preloader logic
-        const words = ["BAYAN", "SOCCER CLINIC", "WELCOME"];
+        const words = ["BAYAN ", "SOCCER CLINIC", "WELCOME"];
         let currentIndex = 0;
         const preloaderWord = document.getElementById('preloaderWord');
         const preloaderText = document.getElementById('preloaderText');
@@ -414,10 +414,10 @@
                 }
             });
             
-            setTimeout(cycleWords, currentIndex === 1 ? 1000 : 150);
+            setTimeout(cycleWords, currentIndex === 1 ? 500 : 150);
         }
         
-        setTimeout(cycleWords, 1000);
+        setTimeout(cycleWords, 500);
 
         function initMainAnimations() {
             gsap.to('#header', { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.2 });
