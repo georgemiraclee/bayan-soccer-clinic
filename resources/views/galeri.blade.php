@@ -377,10 +377,10 @@
                 }
             });
             
-            setTimeout(cycleWords, currentIndex === 1 ? 1000 : 150);
+            setTimeout(cycleWords, currentIndex === 1 ? 500 : 150);
         }
         
-        setTimeout(cycleWords, 1000);
+        setTimeout(cycleWords, 500);
 
         // Main animations
         function initMainAnimations() {
