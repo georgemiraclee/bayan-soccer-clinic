@@ -591,12 +591,6 @@
                             <span class="text-xl">📥</span>
                             <span>Download HD (Kualitas Penuh)</span>
                         </button>
-                        <a href="${fullUrl}" 
-                           target="_blank" 
-                           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-3 rounded-lg font-bold text-center transition-all text-sm md:text-base shadow-lg flex items-center justify-center gap-2">
-                            <span class="text-xl">🔗</span>
-                            <span>Buka di Tab Baru</span>
-                        </a>
                         <button onclick="closeModal()" 
                                 class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 md:px-6 py-3 rounded-lg font-bold transition-all text-sm md:text-base">
                             ✕ Tutup

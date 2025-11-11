@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,39 +73,41 @@
             }
         }
         
-        .gallery-card {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease-out;
-        }
-        
-        #photosGrid {
-            display: grid;
-            gap: 1rem;
-        }
-        
-        #photosGrid .gallery-card {
-            animation: cardFadeIn 0.5s ease-out forwards;
-        }
-        
-        @keyframes cardFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
+        /* Gallery Styles */
+         .gallery-card {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.5s ease-out;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        #photosGrid .gallery-card:nth-child(1) { animation-delay: 0.1s; }
-        #photosGrid .gallery-card:nth-child(2) { animation-delay: 0.2s; }
-        #photosGrid .gallery-card:nth-child(3) { animation-delay: 0.3s; }
-        #photosGrid .gallery-card:nth-child(4) { animation-delay: 0.4s; }
-        #photosGrid .gallery-card:nth-child(5) { animation-delay: 0.5s; }
-        #photosGrid .gallery-card:nth-child(6) { animation-delay: 0.6s; }
             
+            #photosGrid {
+                display: grid;
+                gap: 1rem;
+            }
+            
+            #photosGrid .gallery-card {
+                animation: cardFadeIn 0.5s ease-out forwards;
+            }
+            
+            @keyframes cardFadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            /* Add animation delay for each card */
+            #photosGrid .gallery-card:nth-child(1) { animation-delay: 0.1s; }
+            #photosGrid .gallery-card:nth-child(2) { animation-delay: 0.2s; }
+            #photosGrid .gallery-card:nth-child(3) { animation-delay: 0.3s; }
+            #photosGrid .gallery-card:nth-child(4) { animation-delay: 0.4s; }
+            #photosGrid .gallery-card:nth-child(5) { animation-delay: 0.5s; }
+            #photosGrid .gallery-card:nth-child(6) { animation-delay: 0.6s; }
+                
         .modal {
             display: none;
             position: fixed;
@@ -128,18 +129,23 @@
         .modal-content {
             display: flex;
             flex-direction: column;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-height: 90vh; /* Atur tinggi maksimum modal */
+            overflow-y: auto; /* Aktifkan scroll */
             margin: auto;
             background-color: white;
             border-radius: 1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Tambahkan bayangan untuk efek */
         }
 
         .modal-body {
-            padding: 1rem;
-            overflow-y: auto;
-            max-height: calc(90vh - 100px);
+            padding: 1rem; /* Tambahkan padding untuk konten */
+            overflow-y: auto; /* Pastikan konten dapat di-scroll */
+            max-height: calc(90vh - 100px); /* Tinggi maksimum konten modal */
+        }
+        
+        @keyframes zoomIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
         }
         
         .loader {
@@ -170,28 +176,6 @@
             40% { transform: translateY(-10px); }
             60% { transform: translateY(-5px); }
         }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
     </style>
 </head>
 <body class="bg-black text-white overflow-x-hidden">
@@ -212,12 +196,12 @@
         <!-- Overlay -->
         <div class="fixed top-0 left-0 w-full h-full bg-black/40 -z-10"></div>
 
-        <!-- Header -->
-        <header id="header" class="fixed top-0 left-0 right-0 flex justify-between items-center z-50 opacity-0">
-            <div class="logo absolute top-2 left-2 md:top-4 md:left-4">
-                <img src="{{ asset('images/white.png') }}" alt="BAYAN SC Logo" class="h-10 md:h-12 w-auto">
-            </div>
-        </header>
+    <!-- Header -->
+    <header id="header" class="fixed top-0 left-0 right-0 flex justify-between items-center z-50 opacity-0">
+        <div class="logo absolute top-2 left-2 md:top-4 md:left-4">
+            <img src="{{ asset('images/white.png') }}" alt="BAYAN SC Logo" class="h-10 md:h-12 w-auto">
+        </div>
+    </header>
 
         <!-- Main Container -->
         <div class="relative w-full min-h-screen flex flex-col justify-center items-center px-4 md:px-8 py-20">
@@ -307,14 +291,13 @@
                 <p class="text-white text-xl md:text-2xl font-bold">Loading your photos...</p>
             </div>
 
-            <!-- Gallery Results Section -->
+        <!-- Gallery Results Section -->
             <div id="galleryResults" class="hidden">
                 <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 mb-8">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
                             <h2 class="text-2xl md:text-4xl font-black text-white mb-2">FOTO ANDA SELAMA SOCCER CLINIC</h2>
                             <p class="text-white/80 text-sm md:text-base" id="photoCount">Ditemukan 0 foto</p>
-                            <p class="text-white/60 text-xs md:text-sm mt-1">💡 Foto ditampilkan dalam kualitas preview. Download untuk kualitas HD.</p>
                         </div>
                         <button onclick="resetFaceData()" 
                                 class="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-bold transition-all text-sm md:text-base shadow-lg">
@@ -323,13 +306,14 @@
                     </div>
                 </div>
 
+
                 <!-- Photos Grid -->
                 <div id="photosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-12">
                     <!-- Photos will be inserted here -->
                 </div>
                 
                 <!-- Call to Action - Lihat Semua Foto -->
-                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-10 text-center shadow-2xl transform hover:scale-105 transition-all duration-300 mt-8">
+              <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-10 text-center shadow-2xl transform hover:scale-105 transition-all duration-300 mt-8">
                     <h3 class="text-2xl md:text-3xl font-black text-white mb-3">
                         Foto Kamu Belum Ketemu? 
                     </h3>
@@ -338,8 +322,8 @@
                         <br class="hidden md:block font-semibold">
                         Yuk jelajahi ratusan momen seru Soccer Clinic bersama teman-temanmu! 
                     </p>
-                    <a href="/galeri" 
-                       class="inline-block bg-white hover:bg-gray-100 text-[#12bbfd] px-8 md:px-12 py-4 rounded-xl font-black text-base md:text-lg shadow-xl transition-all transform hover:scale-110 hover:shadow-2xl">
+                    <a href="{{ route('public.galeri.index') }}" 
+                    class="inline-block bg-white hover:bg-gray-100 text-[#12bbfd] px-8 md:px-12 py-4 rounded-xl font-black text-base md:text-lg shadow-xl transition-all transform hover:scale-110 hover:shadow-2xl">
                         DOKUMENTASI LENGKAP
                     </a>
                 </div>
@@ -350,8 +334,9 @@
                     <h3 class="text-xl md:text-3xl font-bold text-white mb-3">Belum Ada Foto dengan Wajah Kamu</h3>
                     <p class="text-white/70 text-sm md:text-base mb-8">Sepertinya belum ada foto dengan wajah kamu yang terdeteksi.<br class="hidden md:block">Tapi tenang, masih banyak foto seru lainnya!</p>
                     
-                    <a href="/galeri" 
-                       class="inline-block bg-[#12bbfd] hover:bg-[#0ea5e0] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all transform hover:scale-105">
+                    <!-- CTA Button in Empty State -->
+                    <a href="{{ route('public.galeri.index') }}" 
+                    class="inline-block bg-[#12bbfd] hover:bg-[#0ea5e0] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all transform hover:scale-105">
                         🖼️ Lihat Semua Foto Event
                     </a>
                 </div>
@@ -360,20 +345,23 @@
     </section>
 
     <!-- Photo Detail Modal -->
-    <div id="photoModal" class="modal">
-        <div class="modal-content">
-            <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-4 md:p-6 flex items-center justify-between sticky top-0 z-10">
-                <h3 class="text-xl md:text-2xl font-bold text-white">Detail Foto</h3>
-                <button onclick="closeModal()" class="text-white hover:text-gray-200 text-3xl md:text-4xl font-bold leading-none">×</button>
-            </div>
-            <div id="modalBody" class="modal-body">
-                <!-- Photo details will be inserted here -->
+        <div id="photoModal" class="modal">
+            <div class="modal-content">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-4 md:p-6 flex items-center justify-between sticky top-0 z-10">
+                    <h3 class="text-xl md:text-2xl font-bold text-white">Detail Foto</h3>
+                    <button onclick="closeModal()" class="text-white hover:text-gray-200 text-3xl md:text-4xl font-bold leading-none">×</button>
+                </div>
+                <div id="modalBody" class="modal-body">
+                    <!-- Photo details will be inserted here -->
+                </div>
             </div>
         </div>
-    </div>
 
     <script>
-        const API_BASE_URL = 'https://fotokuu.web.id';
+        // Configuration - CHANGE THIS TO YOUR API URL
+        // IMPORTANT: Use HTTP (not HTTPS) if you get SSL certificate errors
+        // Or open https://192.168.0.69:5000 in browser first and accept the certificate
+        const API_BASE_URL = 'https://fotokuu.web.id'; // Changed to HTTP to avoid SSL errors
         
         let videoStream = null;
         let faceEmbedding = null;
@@ -419,6 +407,7 @@
         
         setTimeout(cycleWords, 1000);
 
+        // Main animations
         function initMainAnimations() {
             gsap.to('#header', { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.2 });
             gsap.to('#mainTitle', { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.4 });
@@ -439,15 +428,18 @@
             }
         }
 
+        // Scroll to gallery
         function scrollToGallery() {
             document.getElementById('gallerySection').scrollIntoView({ behavior: 'smooth' });
         }
 
+        // Video handling
         const video = document.querySelector('#videoBg');
         video.addEventListener('error', () => {
             document.body.style.background = 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)';
         });
 
+        // Check if face already registered on page load
         window.addEventListener('load', () => {
             const stored = localStorage.getItem('bayan_face_embedding');
             if (stored) {
@@ -557,24 +549,15 @@
             emptyState.classList.add('hidden');
             
             grid.innerHTML = photos.map(photo => {
-                const date = new Date(photo.metadata.date).toLocaleDateString('id-ID', { 
+                const matchScore = (100 - photo.distance * 100).toFixed(0);
+                const date = new Date(photo.metadata.date).toLocaleDateString('en-US', { 
                     year: 'numeric', month: 'long', day: 'numeric' 
                 });
                 
-                const compressedUrl = `${API_BASE_URL}/api/image/compressed/${photo.filename}`;
-                
                 return `
-                    <div class="gallery-card bg-white rounded-xl overflow-hidden shadow-xl cursor-pointer hover:scale-105 transition-transform"
+                    <div class="gallery-card bg-white rounded-xl overflow-hidden shadow-xl cursor-pointer"
                          onclick='showPhotoDetail(${JSON.stringify(photo).replace(/'/g, "&#39;")})'>
-                        <div class="relative">
-                            <img src="${compressedUrl}" 
-                                 alt="${photo.filename}" 
-                                 class="w-full h-48 md:h-64 object-cover"
-                                 loading="lazy">
-                            <div class="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                                Preview
-                            </div>
-                        </div>
+                        <img src="${photo.url}" alt="${photo.filename}" class="w-full h-48 md:h-64 object-cover">
                         <div class="p-4">
                             <h3 class="font-bold text-base md:text-lg mb-1 text-gray-800 line-clamp-1">${photo.metadata.event_name || 'Event'}</h3>
                             <p class="text-gray-600 text-xs md:text-sm">📍 ${photo.metadata.location || 'Location'}</p>
@@ -584,44 +567,7 @@
                     </div>
                 `;
             }).join('');
-        }
-
-        function downloadPhoto(filename) {
-            const downloadUrl = `${API_BASE_URL}/api/download/${filename}`;
             
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            showNotification('Download dimulai! Foto akan tersimpan dalam kualitas HD penuh.', 'success');
-        }
-
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-[10002] px-6 py-4 rounded-lg shadow-2xl text-white font-semibold text-sm md:text-base max-w-md ${
-                type === 'success' ? 'bg-green-600' : 
-                type === 'error' ? 'bg-red-600' : 
-                'bg-blue-600'
-            }`;
-            notification.style.animation = 'slideInRight 0.3s ease-out';
-            notification.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</span>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOutRight 0.3s ease-in';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
         }
 
         function showPhotoDetail(photo) {
@@ -633,9 +579,6 @@
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
             });
             const time = new Date(photo.metadata.date).toLocaleTimeString();
-
-            const compressedUrl = `${API_BASE_URL}/api/image/compressed/${photo.filename}`;
-            const fullUrl = `${API_BASE_URL}/api/image/full/${photo.filename}`;
             
             modalBody.innerHTML = `
                 <img src="${photo.url}" alt="${photo.filename}" class="w-full max-h-[50vh] md:max-h-[60vh] object-contain bg-black">
