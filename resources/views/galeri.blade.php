@@ -65,7 +65,6 @@
             }
         }
         
-        /* Gallery Styles */
         .gallery-card {
             opacity: 0;
             transform: translateY(20px);
@@ -92,7 +91,6 @@
             }
         }
         
-        /* Add animation delay for each card */
         #photosGrid .gallery-card:nth-child(1) { animation-delay: 0.1s; }
         #photosGrid .gallery-card:nth-child(2) { animation-delay: 0.2s; }
         #photosGrid .gallery-card:nth-child(3) { animation-delay: 0.3s; }
@@ -135,11 +133,6 @@
             max-height: calc(90vh - 100px);
         }
         
-        @keyframes zoomIn {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
-        }
-        
         .loader {
             border: 5px solid #f3f3f3;
             border-top: 5px solid #12bbfd;
@@ -175,7 +168,6 @@
             transform: scale(1.05);
         }
 
-        /* Image loading placeholder */
         .img-loading {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -187,26 +179,6 @@
             100% { background-position: -200% 0; }
         }
 
-        /* Download progress indicator */
-        .download-progress {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            z-index: 10001;
-            display: none;
-            text-align: center;
-        }
-
-        .download-progress.active {
-            display: block;
-        }
-
-        /* Notification animations */
         @keyframes slideInRight {
             from {
                 transform: translateX(400px);
@@ -238,13 +210,6 @@
         </div>
     </div>
 
-    <!-- Download Progress Indicator -->
-    <div id="downloadProgress" class="download-progress">
-        <div class="loader mb-4"></div>
-        <p class="text-lg font-bold">Mengunduh foto resolusi tinggi...</p>
-        <p class="text-sm text-gray-300 mt-2">Mohon tunggu sebentar</p>
-    </div>
-
     <!-- Hero Section with Video Background -->
     <section id="heroSection" class="relative min-h-screen">
         <!-- Video Background -->
@@ -256,7 +221,7 @@
         <div class="fixed top-0 left-0 w-full h-full bg-black/40 -z-10"></div>
 
         <!-- Header -->
-      <header id="header" class="fixed top-0 left-0 right-0 flex justify-between items-center z-50 opacity-0">
+        <header id="header" class="fixed top-0 left-0 right-0 flex justify-between items-center z-50 opacity-0">
             <div class="logo absolute top-2 left-2 md:top-4 md:left-4">
                 <img src="{{ asset('images/white.png') }}" alt="BAYAN SC Logo" class="h-10 md:h-12 w-auto">
             </div>
@@ -371,27 +336,10 @@
     </div>
 
     <script>
-        // Configuration
         const API_BASE_URL = 'https://fotokuu.web.id';
         
         let allPhotos = [];
         let currentFilter = 'all';
-
-        // Function to generate low-res URL from Cloudinary
-        function getLowResUrl(url) {
-            // Check if it's a Cloudinary URL
-            if (url.includes('cloudinary.com')) {
-                // Insert quality and dimension transformations
-                // This reduces quality to 50% and limits width to 600px
-                return url.replace('/upload/', '/upload/q_50,w_600,f_auto/');
-            }
-            return url; // Return original if not Cloudinary
-        }
-
-        // Function to get high-res URL (original)
-        function getHighResUrl(url) {
-            return url; // Return original URL for high resolution
-        }
 
         // Preloader logic
         const words = ["GALERI", "FOTO", "SOCCER CLINIC"];
@@ -429,36 +377,31 @@
                 }
             });
             
-            setTimeout(cycleWords, currentIndex === 1 ? 1000 : 150);
+            setTimeout(cycleWords, currentIndex === 1 ? 500 : 150);
         }
         
-        setTimeout(cycleWords, 1000);
+        setTimeout(cycleWords, 500);
 
         // Main animations
         function initMainAnimations() {
             gsap.to('#header', { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.2 });
             gsap.to('#mainTitle', { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.4 });
-            gsap.to('#actionButtons', { opacity: 1, y: 0, duration: 1, ease: 'power2.out', delay: 0.6 });
             gsap.to('#scrollIndicator', { opacity: 1, duration: 1, ease: 'power2.out', delay: 0.8 });
             gsap.to('#sideInfo, #sideInfoMobile, #awardInfo', { opacity: 1, duration: 1.5, ease: 'power2.out', delay: 1 });
             gsap.to('#breadcrumb', { opacity: 1, duration: 1.5, ease: 'power2.out', delay: 1.2 });
 
-            // Load photos after animations
             setTimeout(loadAllPhotos, 500);
         }
 
-        // Scroll to gallery
         function scrollToGallery() {
             document.getElementById('gallerySection').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Video handling
         const video = document.querySelector('#videoBg');
         video.addEventListener('error', () => {
             document.body.style.background = 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)';
         });
 
-        // Load all photos from API
         async function loadAllPhotos() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/user/all_photos`);
@@ -480,7 +423,6 @@
             }
         }
 
-        // Generate event filters
         function generateEventFilters(photos) {
             const events = [...new Set(photos.map(p => p.metadata.event_name || 'Unknown Event'))];
             const filterContainer = document.getElementById('eventFilters');
@@ -493,17 +435,14 @@
             `).join('');
         }
 
-        // Filter photos by event
         function filterByEvent(eventName) {
             currentFilter = eventName;
             
-            // Update active state
             document.querySelectorAll('.filter-badge').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            // Filter photos
             const filtered = eventName === 'all' 
                 ? allPhotos 
                 : allPhotos.filter(p => p.metadata.event_name === eventName);
@@ -511,7 +450,6 @@
             displayPhotos(filtered);
         }
 
-        // Display photos with low resolution
         function displayPhotos(photos) {
             const grid = document.getElementById('photosGrid');
             const emptyState = document.getElementById('emptyState');
@@ -533,13 +471,13 @@
                     year: 'numeric', month: 'long', day: 'numeric' 
                 });
                 
-                const lowResUrl = getLowResUrl(photo.url);
+                const compressedUrl = `${API_BASE_URL}/api/image/compressed/${photo.filename}`;
                 
                 return `
                     <div class="gallery-card bg-white rounded-xl overflow-hidden shadow-xl cursor-pointer hover:scale-105 transition-transform"
                          onclick='showPhotoDetail(${JSON.stringify(photo).replace(/'/g, "&#39;")})'>
                         <div class="relative">
-                            <img src="${lowResUrl}" 
+                            <img src="${compressedUrl}" 
                                  alt="${photo.filename}" 
                                  class="w-full h-48 md:h-64 object-cover"
                                  loading="lazy">
@@ -558,31 +496,19 @@
             }).join('');
         }
 
-        // Download high resolution photo (Direct download without fetch to avoid CORS)
-        function downloadHighResPhoto(photo) {
-            try {
-                const highResUrl = getHighResUrl(photo.url);
-                
-                // Create a temporary link element and trigger download
-                const a = document.createElement('a');
-                a.href = highResUrl;
-                a.download = photo.filename;
-                a.target = '_blank'; // Open in new tab as fallback
-                
-                // Add link to document, click it, then remove
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                // Show success message
-                showNotification('Download dimulai! Foto akan tersimpan dalam kualitas HD penuh.', 'success');
-            } catch (error) {
-                console.error('Error downloading photo:', error);
-                showNotification('Gagal mengunduh foto. Silakan coba lagi.', 'error');
-            }
+        function downloadPhoto(filename) {
+            const downloadUrl = `${API_BASE_URL}/api/download/${filename}`;
+            
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showNotification('Download dimulai! Foto akan tersimpan dalam kualitas HD penuh.', 'success');
         }
 
-        // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `fixed top-4 right-4 z-[10002] px-6 py-4 rounded-lg shadow-2xl text-white font-semibold text-sm md:text-base max-w-md ${
@@ -608,7 +534,6 @@
             }, 3000);
         }
 
-        // Show photo detail modal with low-res preview
         function showPhotoDetail(photo) {
             const modal = document.getElementById('photoModal');
             const modalBody = document.getElementById('modalBody');
@@ -618,11 +543,12 @@
             });
             const time = new Date(photo.metadata.date).toLocaleTimeString('id-ID');
             
-            const lowResUrl = getLowResUrl(photo.url);
+            const compressedUrl = `${API_BASE_URL}/api/image/compressed/${photo.filename}`;
+            const fullUrl = `${API_BASE_URL}/api/image/full/${photo.filename}`;
             
             modalBody.innerHTML = `
                 <div class="relative">
-                    <img src="${lowResUrl}" 
+                    <img src="${compressedUrl}" 
                          alt="${photo.filename}" 
                          class="w-full max-h-[50vh] md:max-h-[60vh] object-contain bg-black">
                     <div class="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-3 py-2 rounded-lg shadow-lg">
@@ -660,17 +586,11 @@
                         <span class="text-gray-500 font-mono text-xs md:text-sm text-right break-all">${photo.filename}</span>
                     </div>
                     <div class="flex flex-col md:flex-row gap-3 pt-4">
-                        <button onclick='downloadHighResPhoto(${JSON.stringify(photo).replace(/'/g, "&#39;")})' 
+                        <button onclick='downloadPhoto("${photo.filename}")' 
                                 class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 md:px-6 py-3 rounded-lg font-bold text-center transition-all text-sm md:text-base shadow-lg flex items-center justify-center gap-2">
                             <span class="text-xl">📥</span>
                             <span>Download HD (Kualitas Penuh)</span>
                         </button>
-                        <a href="${photo.url}" 
-                           target="_blank" 
-                           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-3 rounded-lg font-bold text-center transition-all text-sm md:text-base shadow-lg flex items-center justify-center gap-2">
-                            <span class="text-xl">🔗</span>
-                            <span>Buka di Tab Baru</span>
-                        </a>
                         <button onclick="closeModal()" 
                                 class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 md:px-6 py-3 rounded-lg font-bold transition-all text-sm md:text-base">
                             ✕ Tutup
@@ -683,13 +603,11 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // Close modal
         function closeModal() {
             document.getElementById('photoModal').classList.remove('active');
             document.body.style.overflow = 'auto';
         }
 
-        // Close modal on outside click
         window.onclick = function(event) {
             const modal = document.getElementById('photoModal');
             if (event.target === modal) {
@@ -697,7 +615,6 @@
             }
         }
 
-        // Close modal on ESC key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeModal();
