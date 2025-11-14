@@ -3,12 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>Semua Foto - Bayan Soccer Clinic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
+            overscroll-behavior-y: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        html {
+            overscroll-behavior: none;
         }
         
         .main-title {
@@ -108,6 +116,7 @@
             height: 100%;
             background-color: rgba(0,0,0,0.95);
             overflow: auto;
+            overscroll-behavior-y: contain;
         }
         
         .modal.active {
@@ -296,9 +305,12 @@
                     <button onclick="filterByEvent('all')" class="filter-badge active bg-white/20 text-white px-4 py-2 rounded-full text-sm font-semibold">
                         Semua
                     </button>
-                    <div id="eventFilters" class="flex flex-wrap gap-2">
-                        <!-- Event filters will be inserted here -->
-                    </div>
+                    <button onclick="filterByEvent('Day 1 Bayan Soccer Clinic')" class="filter-badge bg-white/20 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-white/30">
+                        Day 1 Bayan Soccer Clinic
+                    </button>
+                    <button onclick="filterByEvent('Day 2 Bayan Soccer Clinic')" class="filter-badge bg-white/20 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-white/30">
+                        Day 2 Bayan Soccer Clinic
+                    </button>
                 </div>
             </div>
 
@@ -340,6 +352,37 @@
         
         let allPhotos = [];
         let currentFilter = 'all';
+
+        // Prevent pull-to-refresh on mobile
+        let lastTouchY = 0;
+        let preventPullToRefresh = false;
+
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) { return; }
+            lastTouchY = e.touches[0].clientY;
+            preventPullToRefresh = window.pageYOffset === 0;
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            const touchY = e.touches[0].clientY;
+            const touchYDelta = touchY - lastTouchY;
+            lastTouchY = touchY;
+
+            if (preventPullToRefresh) {
+                // Cegah scroll ke atas jika sudah di posisi paling atas
+                if (touchYDelta > 0) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        }, { passive: false });
+
+        // Prevent overscroll on iOS
+        document.body.addEventListener('touchmove', (e) => {
+            if (e.target === document.body) {
+                e.preventDefault();
+            }
+        }, { passive: false });
 
         // Preloader logic
         const words = ["GALERI", "FOTO", "SOCCER CLINIC"];
@@ -412,7 +455,6 @@
                 if (data.success && data.photos.length > 0) {
                     allPhotos = data.photos;
                     displayPhotos(allPhotos);
-                    generateEventFilters(allPhotos);
                 } else {
                     document.getElementById('emptyState').classList.remove('hidden');
                 }
@@ -421,18 +463,6 @@
                 document.getElementById('emptyState').classList.remove('hidden');
                 console.error('Error loading photos:', error);
             }
-        }
-
-        function generateEventFilters(photos) {
-            const events = [...new Set(photos.map(p => p.metadata.event_name || 'Unknown Event'))];
-            const filterContainer = document.getElementById('eventFilters');
-            
-            filterContainer.innerHTML = events.map(event => `
-                <button onclick="filterByEvent('${event.replace(/'/g, "\\'")}')" 
-                        class="filter-badge bg-white/20 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-white/30">
-                    ${event}
-                </button>
-            `).join('');
         }
 
         function filterByEvent(eventName) {
